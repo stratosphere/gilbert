@@ -5,4 +5,69 @@
 
 \section{Supported Matlab grammar}
 
+\begin{grammar}
+	<program> ::= <statement_or_function_list>
+	
+	<statement_or_function_list> ::= <statement_list> \alt <function_list>
+	
+	<function_list> ::= FUNCTION <function_values> <identifier> <function_params> <function_body> END
+	
+	<function_body> ::= <statement_list>
+	
+	<function_values> ::= <identifier> EQ \alt LSBRACKET <identifier_list> RSBRACKET EQ \alt <empty>
+	
+	<function_params> ::= LPAREN <identifier_list> RPAREN
+	
+	<identifier_list> ::= <identifier> ( COMMA <identifier> )*
+	
+	<statement_list> ::= ( <statement> )*
+	
+	<statement> ::= <assignment> \alt <expression> \alt <for_statement> \alt <while_statement>
+	
+	<assignment> ::= <lhs> EQ <rhs> <newline_or_comma_or_semicolon>
+	
+	<lhs> ::= <identifier> \alt <identifier_with_index>
+	
+	<rhs> ::= <expression>
+	
+	<expression> ::= <arithmetic_expression>
+	
+	<arithmetic_expression> ::= <aexp1>
+	
+	<aexp1> ::= <aexp2> ( LOGICAL_OR <aexp2> )*
+	
+	<aexp2> ::= <aexp3> ( LOGICAL_AND <aexp3> )*
+	
+	<aexp3> ::= <aexp4> ( BINARY_OR <aexp4> )*
+	
+	<aexp4> ::= <aexp5> ( BINARY_AND <aexp5> )*
+	
+	<aexp5> ::= <aexp6> ( <comparison_operators> <aexp6> )*
+	
+	<aexp6> ::= <aexp7> ( COLON <aexp7> )*
+	
+	<aexp7> ::= <aexp8> ( <addition_operators> <aexp8> )*
+	
+	<aexp8> ::= <aexp9> ( <multiplication_operators> <aexp9> )*
+	
+	<aexp9> ::= <prefix_operator> <aexp9> \alt <aexp10>
+	
+	<aexp10> ::= <aexp11> ( <exponentiation_operators> <aexp11> )*
+	
+	<aexp11> ::= <unary_expression> ( <postfix_operator> )?
+	
+	<unary_expression> ::= <elementary_expression> \alt LPAREN <expression> RPAREN
+	
+	<elementary_expression> ::= <identifier> \alt <integer> \alt <float> \alt <matrix> \alt <string>
+	
+	<comparison_operators> ::= GT \alt GTE \alt LT \alt LTE \alt DEQ
+	
+	<addition_operators> ::= PLUS \alt MINUS
+	
+	<multiplication_operators> ::= MULT \alt LEFT_DIV \alt CELLWISE_MULT \alt CELLWISE_LEFT_DIV \alt RIGHT_DIV \alt CELLWISE_RIGHT_DIV
+	
+	<exponentiation_operators> ::= EXP \alt CELLWISE_EXP
+\end{grammar}
+
+
 \end{document}
