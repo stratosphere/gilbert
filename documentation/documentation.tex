@@ -32,6 +32,8 @@
 	
 	<expression> ::= <arithmetic_expression>
 	
+	<expression_list> ::= <expression> ( COMMA <expression> )*
+	
 	<arithmetic_expression> ::= <aexp1>
 	
 	<aexp1> ::= <aexp2> ( LOGICAL_OR <aexp2> )*
@@ -58,7 +60,13 @@
 	
 	<unary_expression> ::= <elementary_expression> \alt LPAREN <expression> RPAREN
 	
-	<elementary_expression> ::= <identifier> \alt <integer> \alt <float> \alt <matrix> \alt <string>
+	<elementary_expression> ::= <identifier> \alt <integer> \alt <float> \alt <matrix> \alt <string> \alt <function_application>
+	
+	<function_application> ::= <identifier> LPAREN <expression_list> RPAREN
+	
+	<matrix> ::= LSBRACKET ( <matrix_row> <newline_or_semicolon> )* RSBRACKET
+	
+	<matrix_row> ::= ( <expression> COMMA )*
 	
 	<comparison_operators> ::= GT \alt GTE \alt LT \alt LTE \alt DEQ
 	
