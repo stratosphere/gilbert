@@ -9,11 +9,11 @@ import de.tuberlin.dima.stratosphere.gilbert.mlexer.token.MKeywords
 import scala.collection.immutable.HashSet
 import de.tuberlin.dima.stratosphere.gilbert.mlexer.token.MDelimiters
 
-class MLexer extends MScanners with MTokens {
+trait MLexer extends MScanners with MTokens {
   
   val keywords = HashSet[String]((for(value <- MKeywords.values) yield value.toString).toSeq:_*)
   
-  def accept(token: Token) = { println("MLexer"); true }
+  def accept(token: Token) = { true }
   
   def letter:Parser[Char] = elem("letter",_.isLetter);
   
@@ -50,7 +50,7 @@ class MLexer extends MScanners with MTokens {
       | digit ~ rep(digit) ^^ { case h~t => IntegerLiteral((h::t).dropWhile(_=='0').mkString("").toInt) }
       | whitespace ~ rep(whitespace) ^^ { case h~t => Whitespace(h+t.mkString(""))}
       | guard(Parser{in => if(isTransposable(previousToken)) Failure("failure",in) else Success("success",in)})~>'\''~>rep( chrExcept(List('\'','\n',EofCh)))<~'\'' ^^ { case l => StringLiteral(l.mkString("")) }
-      | '\"'~>rep( chrExcept(List('\'','\n',EofCh)))<~'\"' ^^ { case l => StringLiteral(l.mkString("")) }
+      | '\"'~>rep( chrExcept(List('\"','\n',EofCh)))<~'\"' ^^ { case l => StringLiteral(l.mkString("")) }
       | EofCh ^^^ EOF
       | delimiterParser
       | failure("illegal character"))
@@ -77,18 +77,4 @@ class MLexer extends MScanners with MTokens {
   }
   
   private def delimiterParser:Parser[Token] = delimiters
-  
-  def lex(in: String): List[Token] = lex(new CharArrayReader(in.toCharArray()));
-  
-  def lex(in: Reader[Char]): List[Token] = {
-    var scanner = new MScanner(in)
-    val listBuffer = new ListBuffer[Token]();
-    
-    while(!scanner.atEnd){
-      listBuffer += scanner.first;
-      scanner = scanner.rest;
-    }
-    
-    listBuffer.toList
-  }
 }

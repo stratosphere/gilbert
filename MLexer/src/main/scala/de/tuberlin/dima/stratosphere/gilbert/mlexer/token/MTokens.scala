@@ -28,9 +28,9 @@ trait MTokens extends Tokens {
     def chars = "whitespace " + whitespace;
   }
   
-  case class Void extends Token{
+  case object Void extends Token{
     def chars = "void token"
   }
   
-  def voidToken = Void()
+  def voidToken = Void
 }

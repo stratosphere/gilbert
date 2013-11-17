@@ -6,4 +6,6 @@ object MKeywords extends Enumeration{
 	val IF = Value("if");
 	val FOR = Value("for");
 	val WHILE = Value("while");
+	val FUNCTION = Value("function");
+	val END = Value("end");
 }
