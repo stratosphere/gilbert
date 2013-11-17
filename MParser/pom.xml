@@ -48,6 +48,11 @@
       <version>2.0.M6-SNAP8</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+    	<groupId>de.tuberlin.dima.stratosphere.gilbert</groupId>
+    	<artifactId>MLexer</artifactId>
+    	<version>0.0.1-SNAPSHOT</version>
+    </dependency>
   </dependencies>
 
   <build>
@@ -67,7 +72,8 @@
             </goals>
             <configuration>
               <args>
-                <arg>-make:transitive</arg>
+              	<arg>-deprecation</arg>
+              	<arg>-feature</arg>
                 <arg>-dependencyfile</arg>
                 <arg>${project.build.directory}/.scala_dependencies</arg>
               </args>
