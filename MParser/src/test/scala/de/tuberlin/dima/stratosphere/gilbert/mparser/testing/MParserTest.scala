@@ -6,13 +6,14 @@ import org.scalatest.Assertions
 import org.junit.Test
 import scala.util.parsing.input.StreamReader
 import java.io.FileReader
+import de.tuberlin.dima.stratosphere.gilbert.mparser.ast.MOperators._
 
 class MParserTest extends MParser with Assertions {
 
   import MAst._
   
   @Test def testMParser{
-    val expected = ASTProgram(List(ASTAssignment(ASTIdentifier("A"),ASTFunctionApplication(ASTIdentifier("load"),List(ASTString("inputfile"), ASTInteger(10), ASTInteger(10)))), ASTAssignment(ASTIdentifier("B"),ASTFunctionApplication(ASTIdentifier("bin"),List(ASTIdentifier("A")))), ASTAssignment(ASTIdentifier("C"),ASTBinaryExpression(ASTUnaryExpression(ASTIdentifier("B"),ASTTranspose),ASTMult,ASTIdentifier("B"))), ASTAssignment(ASTIdentifier("D"),ASTBinaryExpression(ASTIdentifier("C"),ASTCellwiseDiv,ASTFunctionApplication(ASTIdentifier("maxValue"),List(ASTIdentifier("C")))))))
+    val expected = ASTProgram(List(ASTAssignment(ASTIdentifier("A"),ASTFunctionApplication(ASTIdentifier("load"),List(ASTString("inputfile"), ASTInteger(10), ASTInteger(10)))), ASTAssignment(ASTIdentifier("B"),ASTFunctionApplication(ASTIdentifier("bin"),List(ASTIdentifier("A")))), ASTAssignment(ASTIdentifier("C"),ASTBinaryExpression(ASTUnaryExpression(ASTIdentifier("B"),TransposeOp),MultOp,ASTIdentifier("B"))), ASTAssignment(ASTIdentifier("D"),ASTBinaryExpression(ASTIdentifier("C"),CellwiseDivOp,ASTFunctionApplication(ASTIdentifier("maxValue"),List(ASTIdentifier("C")))))))
     
     val inputURL = ClassLoader.getSystemResource("input.m");
     val inputReader = StreamReader(new FileReader(inputURL.toURI().getPath()));
@@ -27,5 +28,4 @@ class MParserTest extends MParser with Assertions {
       case _ => fail()
     }
   }
-
 }

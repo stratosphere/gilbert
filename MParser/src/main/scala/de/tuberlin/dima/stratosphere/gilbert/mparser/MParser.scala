@@ -9,6 +9,7 @@ import de.tuberlin.dima.stratosphere.gilbert.mlexer.token.MKeywords
 import de.tuberlin.dima.stratosphere.gilbert.mlexer.token.MDelimiters
 import de.tuberlin.dima.stratosphere.gilbert.mlexer.token.DiscardWhitespaces
 import de.tuberlin.dima.stratosphere.gilbert.mparser.ast.MAst
+import de.tuberlin.dima.stratosphere.gilbert.mparser.ast.MOperators._
 
 trait MParser extends Parsers {
   import MAst._
@@ -71,32 +72,32 @@ trait MParser extends Parsers {
 
   def aexp1 = aexp2 ~ repsep(aexp2, LOGICAL_OR) ^^ {
     case e ~ Nil => e
-    case e ~ l => l.foldLeft(e) { (x, y) => ASTBinaryExpression(x, ASTLogicalOr, y) }
+    case e ~ l => l.foldLeft(e) { (x, y) => ASTBinaryExpression(x, LogicalOrOp, y) }
   }
 
   def aexp2 = aexp3 ~ repsep(aexp3, LOGICAL_AND) ^^ {
     case e ~ Nil => e
-    case e ~ l => l.foldLeft(e) { (x, y) => ASTBinaryExpression(x, ASTLogicalAnd, y) }
+    case e ~ l => l.foldLeft(e) { (x, y) => ASTBinaryExpression(x, LogicalAndOp, y) }
   }
 
   def aexp3 = aexp4 ~ repsep(aexp4, BINARY_OR) ^^ {
     case e ~ Nil => e
-    case e ~ l => l.foldLeft(e) { (x, y) => ASTBinaryExpression(x, ASTBinaryOr, y) }
+    case e ~ l => l.foldLeft(e) { (x, y) => ASTBinaryExpression(x, BinaryOrOp, y) }
   }
 
   def aexp4 = aexp5 ~ repsep(aexp5, BINARY_AND) ^^ {
     case e ~ Nil => e
-    case e ~ l => l.foldLeft(e) { (x, y) => ASTBinaryExpression(x, ASTBinaryAnd, y) }
+    case e ~ l => l.foldLeft(e) { (x, y) => ASTBinaryExpression(x, BinaryAndOp, y) }
   }
 
   def aexp5 = aexp6 ~ rep(comparisonOperator ~ aexp6) ^^ {
     case e ~ Nil => e
     case e ~ l => l.foldLeft(e)((x, y) => y match {
-      case GT ~ c => ASTBinaryExpression(x, ASTGT, c)
-      case GTE ~ c => ASTBinaryExpression(x, ASTGTE, c)
-      case LT ~ c => ASTBinaryExpression(x, ASTLT, c)
-      case LTE ~ c => ASTBinaryExpression(x, ASTLTE, c)
-      case DEQ ~ c => ASTBinaryExpression(x, ASTDEQ, c)
+      case GT ~ c => ASTBinaryExpression(x, GTOp, c)
+      case GTE ~ c => ASTBinaryExpression(x, GTEOp, c)
+      case LT ~ c => ASTBinaryExpression(x, LTOp, c)
+      case LTE ~ c => ASTBinaryExpression(x, LTEOp, c)
+      case DEQ ~ c => ASTBinaryExpression(x, DEQOp, c)
     })
   }
 
@@ -105,38 +106,38 @@ trait MParser extends Parsers {
   def aexp7 = aexp8 ~ rep(additionOperator ~ aexp8) ^^ {
     case e ~ Nil => e
     case e ~ l => l.foldLeft(e)((x, y) => y match {
-      case PLUS ~ a => ASTBinaryExpression(x, ASTPlus, a)
-      case MINUS ~ a => ASTBinaryExpression(x, ASTMinus, a)
+      case PLUS ~ a => ASTBinaryExpression(x, PlusOp, a)
+      case MINUS ~ a => ASTBinaryExpression(x, MinusOp, a)
     })
   }
 
   def aexp8 = aexp9 ~ rep(multiplicationOperator ~ aexp9) ^^ {
     case e ~ Nil => e
     case e ~ l => l.foldLeft(e)((x, y) => y match {
-      case MULT ~ m => ASTBinaryExpression(x, ASTMult, m)
-      case DIV ~ m => ASTBinaryExpression(x, ASTDiv, m)
-      case CELLWISE_DIV ~ m => ASTBinaryExpression(x, ASTCellwiseDiv, m)
-      case CELLWISE_MULT ~ m => ASTBinaryExpression(x, ASTCellwiseMult, m)
+      case MULT ~ m => ASTBinaryExpression(x, MultOp, m)
+      case DIV ~ m => ASTBinaryExpression(x, DivOp, m)
+      case CELLWISE_DIV ~ m => ASTBinaryExpression(x, CellwiseDivOp, m)
+      case CELLWISE_MULT ~ m => ASTBinaryExpression(x, CellwiseMultOp, m)
     })
   }
 
   def aexp9: Parser[ASTExpression] = (prefix_operator ~ aexp9 ^^ {
-    case PLUS ~ e => ASTUnaryExpression(e, ASTPrePlus)
-    case MINUS ~ e => ASTUnaryExpression(e, ASTPreMinus)
+    case PLUS ~ e => ASTUnaryExpression(e, PrePlusOp)
+    case MINUS ~ e => ASTUnaryExpression(e, PreMinusOp)
   }
     | aexp10)
 
   def aexp10 = aexp11 ~ rep(exponentiationOperator ~ aexp11) ^^ {
     case e ~ Nil => e
     case e ~ l => l.foldLeft(e)((x, y) => y match {
-      case EXP ~ exp => ASTBinaryExpression(x, ASTExp, exp)
-      case CELLWISE_EXP ~ exp => ASTBinaryExpression(x, ASTCellwiseExp, exp)
+      case EXP ~ exp => ASTBinaryExpression(x, ExpOp, exp)
+      case CELLWISE_EXP ~ exp => ASTBinaryExpression(x, CellwiseExpOp, exp)
     })
   }
 
   def aexp11 = unaryExpression ~ opt(postFixOperator) ^^ {
-    case e ~ Some(TRANSPOSE) => ASTUnaryExpression(e, ASTTranspose)
-    case e ~ Some(CELLWISE_TRANSPOSE) => ASTUnaryExpression(e, ASTCellwiseTranspose)
+    case e ~ Some(TRANSPOSE) => ASTUnaryExpression(e, TransposeOp)
+    case e ~ Some(CELLWISE_TRANSPOSE) => ASTUnaryExpression(e, CellwiseTransposeOp)
     case e ~ None => e
   }
 
@@ -148,7 +149,7 @@ trait MParser extends Parsers {
     | matrix
     | stringLiteral )
     
-  def functionApplication = identifier ~ LPAREN ~ repsep(expression, COMMA) ~ RPAREN ^^ { case id~LPAREN~args~RPAREN => ASTFunctionApplication(id,args) }
+  def functionApplication = identifier ~ LPAREN ~ repsep(expression, COMMA) ~ RPAREN ^^ { case exp~LPAREN~args~RPAREN => ASTFunctionApplication(exp,args) }
 
   def scalar: Parser[ASTScalar] = integerLiteral | floatingPointLiteral
 
