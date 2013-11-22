@@ -1,4 +1,4 @@
-package de.tuberlin.dima.stratosphere.gilbert.mparser.misc
+package de.tuberlin.dima.stratosphere.gilbert.mtyper.misc
 
 import de.tuberlin.dima.stratosphere.gilbert.mtyper.types.MTypedAst._
 

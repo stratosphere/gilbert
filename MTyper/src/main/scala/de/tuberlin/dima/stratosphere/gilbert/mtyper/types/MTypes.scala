@@ -58,11 +58,4 @@ object MTypes {
     def apply(parameters: (MType, MType), value: MType) = new FunctionType(List(parameters._1, parameters._2), value)
     def apply(parameters: (MType, MType, MType), value: MType) = new FunctionType(List(parameters._1, parameters._2,parameters._3), value)
   }
-
-  object -> {
-    def unapply(functionType: FunctionType): Option[(List[MType], MType)] = {
-      Some(functionType.parameters, functionType.value)
-    }
-  }
-
 }

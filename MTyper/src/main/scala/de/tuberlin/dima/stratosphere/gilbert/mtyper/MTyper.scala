@@ -21,19 +21,21 @@ trait MTyper {
   private val typeVarMapping = scala.collection.mutable.Map[MType, MType]()
   private val valueVarMapping = scala.collection.mutable.Map[MValue, MValue]()
 
-  def resolveType(datatype: MType): (MType, Option[AbstractTypeVar]) = {
+  def resolveType(datatype: MType): MType = {
     datatype match {
       case _: AbstractTypeVar =>
-        var prev: Option[AbstractTypeVar] = None
         var result: MType = datatype
 
         while (result != typeVarMapping.getOrElse(result, result)) {
-          prev = result match { case x: AbstractTypeVar => Some(x) case _ => None }
           result = typeVarMapping(result)
         }
 
-        (result, prev)
-      case _ => (datatype, None)
+        result
+      case MatrixType(elementType, rowValue, colValue) => MatrixType(resolveType(elementType),
+          resolveValue(rowValue), resolveValue(colValue))
+      case FunctionType(args,result) => FunctionType(args map {resolveType(_)},resolveType(result))
+      case PolymorphicType(types) => PolymorphicType(types map {resolveType(_)})
+      case x => x
     }
   }
 
@@ -81,7 +83,7 @@ trait MTyper {
   
   def resolveValueReferences(datatype: MType, arguments: List[TypedExpression]):MType = {
     datatype match{
-      case args -> result => FunctionType(args map {resolveValueReferences(_,arguments)},resolveValueReferences(result,arguments))
+      case FunctionType(args, result) => FunctionType(args map {resolveValueReferences(_,arguments)},resolveValueReferences(result,arguments))
       case PolymorphicType(types) => PolymorphicType(types map { resolveValueReferences(_,arguments)})
       case MatrixType(elementType, rowValue, colValue) => MatrixType(resolveValueReferences(elementType,arguments),
           resolveValueReferences(rowValue,arguments),
@@ -113,7 +115,7 @@ trait MTyper {
         case UniversalType(x: TypeVar) => replacement.getOrElseUpdate(x, newTV())
         case MatrixType(elementType, rowValue, colValue) => MatrixType(helper(elementType), specializeValue(rowValue), specializeValue(colValue))
         case PolymorphicType(types) => PolymorphicType(types map { helper(_) })
-        case args -> result => FunctionType(args map { helper(_) }, helper(result))
+        case FunctionType(args, result) => FunctionType(args map { helper(_) }, helper(result))
         case x => x
       }
     }
@@ -139,7 +141,7 @@ trait MTyper {
         case x: AbstractTypeVar => Set(x)
         case MatrixType(elementType, rowValue, colValue) => helper(elementType)
         case PolymorphicType(types) => (types flatMap (helper(_))).toSet
-        case args -> result => (args flatMap (helper(_))).toSet ++ helper(result)
+        case FunctionType(args, result) => (args flatMap (helper(_))).toSet ++ helper(result)
         case _ => Set()
       }
     }
@@ -155,7 +157,7 @@ trait MTyper {
         case x: AbstractTypeVar => if (freeVars contains x) x else UniversalType(x)
         case MatrixType(elementType, rowValue, colValue) => MatrixType(helper(elementType), generalizeValue(rowValue), generalizeValue(colValue))
         case PolymorphicType(types) => PolymorphicType(types map { helper(_) })
-        case args -> result => FunctionType(args map { helper(_) }, helper(result))
+        case FunctionType(args, result) => FunctionType(args map { helper(_) }, helper(result))
         case x => x
       }
     }
@@ -189,20 +191,12 @@ trait MTyper {
 
   //TODO: type variable contained in other type as subexpression
   def unify(a: MType, b: MType): Option[MType] = {
-    val (resolvedTypeA, typeVarA) = resolveType(a)
-    val (resolvedTypeB, typeVarB) = resolveType(b)
+    val resolvedTypeA = resolveType(a)
+    val resolvedTypeB = resolveType(b)
 
     val (typeA, typeB) = widenTypes(resolvedTypeA, resolvedTypeB)
 
     if (typeA == typeB) {
-      typeVarA match {
-        case Some(t) => updateTypeVarMapping(t, typeA)
-        case _ => ;
-      }
-      typeVarB match {
-        case Some(t) => updateTypeVarMapping(t, typeA)
-        case _ => ;
-      }
       Some(typeA)
     } else {
       (typeA, typeB) match {
@@ -218,7 +212,7 @@ trait MTyper {
         case (x: NumericType, y: NumericTypeVar) =>
           updateTypeVarMapping(y, x)
           Some(x)
-        case (args1 -> result1, args2 -> result2) =>
+        case (FunctionType(args1, result1), FunctionType(args2, result2)) =>
           if (args1.length != args2.length) None
           else {
             val unifiedArgs = (for ((x, y) <- (args1 zip args2)) yield {
@@ -285,7 +279,7 @@ trait MTyper {
       val unificationResult = resolvePolymorphicType(operatorType, FunctionType(extractType(typedExpression), newTV()))
 
       unificationResult match {
-        case Some(((List(_) -> resultType), _)) => TypedUnaryExpression(typedExpression, op, resultType)
+        case Some((FunctionType(_,resultType), _)) => TypedUnaryExpression(typedExpression, op, resultType)
         case _ => throw new TypeNotFoundError("Unary expression: " + ASTUnaryExpression(exp, op))
       }
     case ASTBinaryExpression(a, op, b) =>
@@ -295,7 +289,7 @@ trait MTyper {
       val unificationResult = resolvePolymorphicType(operatorType, FunctionType(List(extractType(typedExpressionA), extractType(typedExpressionB)), newTV()))
 
       unificationResult match {
-        case Some(((List(_) -> resultType), _)) => TypedBinaryExpression(typedExpressionA, op, typedExpressionB, resultType)
+        case Some((FunctionType(_,resultType), _)) => TypedBinaryExpression(typedExpressionA, op, typedExpressionB, resultType)
         case _ => throw new TypeNotFoundError("Binary expression: " + ASTBinaryExpression(a, op, b))
       }
     case ASTFunctionApplication(func, arguments) =>
@@ -306,7 +300,8 @@ trait MTyper {
       val unificationResult = resolvePolymorphicType(functionType,FunctionType(typedArguments map {extractType(_)},newTV()))
       
       unificationResult match{
-        case Some(((List(_)->resultType),_)) => TypedFunctionApplication(typedFunc,typedArguments,resolveValueReferences(resultType,typedArguments))
+        case Some((FunctionType(_,resultType),_)) => 
+          TypedFunctionApplication(typedFunc,typedArguments,resolveValueReferences(resultType,typedArguments))
         case _ => throw new TypeNotFoundError("Function application could not be typed")
       }
 
