@@ -9,13 +9,13 @@ object App extends MParser {
 	val inputURL = ClassLoader.getSystemResource("input.m");
     val inputReader = StreamReader(new FileReader(inputURL.toURI().getPath()));
     
-    val ast = program(inputReader)
+    val ast = phrase(program)(inputReader)
     
     println(ast)
     
     ast match {
       case Success(program,in) => PrettyPrinter.printProgram(program, 0)
-      case _ => println("Could not parse program")
+      case f => println("Could not parse program: " + f)
     }
     
   }

@@ -18,18 +18,19 @@ trait MParser extends Parsers {
   val lexer = new MLexer with DiscardWhitespaces {}
   type Elem = lexer.Token
 
-  import lexer.{ Keyword, Identifier, StringLiteral, IntegerLiteral, FloatingPointLiteral }
+  import lexer.{ Keyword, Identifier, StringLiteral, IntegerLiteral, FloatingPointLiteral, EOF }
 
   import MKeywords._
   import MDelimiters._
 
   implicit def tokenReader(input: Reader[Char]): Reader[Elem] = lexer(input)
+  implicit def tokenReader(input: String): Reader[Elem] = lexer(input)
   implicit def keyword2Parser(keyword: MKeywords): Parser[MKeywords] = this.elem("keyword " + keyword.toString, { case Keyword(name) if name == keyword.toString => true case _ => false }) ^^ { _ => keyword } 
   implicit def delimiter2Parser(delimiter: MDelimiters): Parser[MDelimiters] = this.elem("keyword " + delimiter.toString, { case Keyword(name) if name == delimiter.toString => true case _ => false }) ^^ { _ => delimiter }
 
   def program = statementOrFunctionList
 
-  def statementOrFunctionList: Parser[ASTProgram] = rep(statement | functionDefinition) ^^ { case l => ASTProgram(l) }
+  def statementOrFunctionList: Parser[ASTProgram] = rep((statement | functionDefinition) <~ (newlineOrCommaOrSemicolon | eof)) ^^ { case l => ASTProgram(l) }
 
   def functionDefinition = (FUNCTION ~> opt(functionValues)) ~ identifier ~ functionParams ~ functionBody <~ END ^^ {
     case None ~ id ~ funParams ~ funBody => ASTFunction(Nil, id, funParams, funBody)
@@ -59,7 +60,7 @@ trait MParser extends Parsers {
 
   def whileStatement: Parser[ASTStatement] = failure("while statement is not yet supported")
 
-  def assignment = (((lhs <~ EQ) ~ rhs) <~ newlineOrCommaOrSemicolon) ^^ { case l ~ r => ASTAssignment(l, r) }
+  def assignment = ((lhs <~ EQ) ~ rhs) ^^ { case l ~ r => ASTAssignment(l, r) }
 
   def lhs = (identifier
     | identifierWithIndex)
@@ -173,5 +174,5 @@ trait MParser extends Parsers {
 
   def newlineOrSemicolon = SEMICOLON | NEWLINE
   def newlineOrCommaOrSemicolon = SEMICOLON | NEWLINE | COMMA
-
+  def eof = accept(EOF)
 }
