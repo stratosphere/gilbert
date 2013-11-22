@@ -32,6 +32,7 @@ trait MScanners extends Parsers with SelectTokens {
   }
 
   def apply(in: Reader[Char]) = new MScanner(in)
+  def apply(in: String) = new MScanner(in)
 
   class MScanner(in: Reader[Elem], previousToken: Token) extends Reader[Token] {
     def this(in: String) = this(new CharArrayReader(in.toCharArray()), voidToken)
