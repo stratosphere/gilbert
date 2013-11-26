@@ -10,9 +10,12 @@ object MAst {
 	case class ASTFunction(values: List[ASTIdentifier], identifier: ASTIdentifier, parameters: List[ASTExpression], body: ASTProgram) extends ASTStatementOrFunction
 	
 	sealed abstract class ASTStatement  extends ASTStatementOrFunction
-	case class ASTAssignment(lhs: ASTIdentifier,rhs:ASTExpression) extends ASTStatement
+	sealed abstract class ASTStatementWithResult extends ASTStatement
+	case class ASTOutputResultStatement(statementWithResult: ASTStatementWithResult) extends ASTStatement
+	case object ASTNOP extends ASTStatement
+	case class ASTAssignment(lhs: ASTIdentifier,rhs:ASTExpression) extends ASTStatementWithResult
 
-	sealed abstract class ASTExpression extends ASTStatement
+	sealed abstract class ASTExpression extends ASTStatementWithResult
 	
 	case class ASTString(value: String) extends ASTExpression
 	case class ASTIdentifier(value: String) extends ASTExpression

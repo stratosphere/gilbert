@@ -29,7 +29,7 @@ object PrettyPrinter {
 	  println(indentation + "Not yet implemented")
 	}
 	
-	def printStatement(stmt:ASTStatement, indent:Int) ={
+	def printStatement(stmt:ASTStatement, indent:Int):Unit ={
 	  val indentation = " "*indent
 	  stmt match {
 	    case ASTAssignment(lhs, rhs) => 
@@ -38,6 +38,12 @@ object PrettyPrinter {
 	      printExpression(rhs,indent+1)
 	      println(indentation + ")")
 	    case x:ASTExpression => printExpression(x,indent)
+	    case ASTOutputResultStatement(stmt) =>
+	      println(indentation + "ASTOutputResultStatement(")
+	      printStatement(stmt,indent+1)
+	      println(indentation + ")")
+	    case ASTNOP =>
+	      println(indentation + "NOP")
 	  }
 	}
 	

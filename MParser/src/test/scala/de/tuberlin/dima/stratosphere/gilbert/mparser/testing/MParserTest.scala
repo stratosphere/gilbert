@@ -13,7 +13,12 @@ class MParserTest extends MParser with Assertions {
   import MAst._
   
   @Test def testMParser{
-    val expected = ASTProgram(List(ASTAssignment(ASTIdentifier("A"),ASTFunctionApplication(ASTIdentifier("load"),List(ASTString("inputfile"), ASTInteger(10), ASTInteger(10)))), ASTAssignment(ASTIdentifier("B"),ASTFunctionApplication(ASTIdentifier("bin"),List(ASTIdentifier("A")))), ASTAssignment(ASTIdentifier("C"),ASTBinaryExpression(ASTUnaryExpression(ASTIdentifier("B"),TransposeOp),MultOp,ASTIdentifier("B"))), ASTAssignment(ASTIdentifier("D"),ASTBinaryExpression(ASTIdentifier("C"),CellwiseDivOp,ASTFunctionApplication(ASTIdentifier("maxValue"),List(ASTIdentifier("C")))))))
+    val expected = ASTProgram(List(ASTAssignment(ASTIdentifier("A"),ASTFunctionApplication(ASTIdentifier("load"),
+        List(ASTString("inputfile"), ASTInteger(10), ASTInteger(10)))), ASTAssignment(ASTIdentifier("B"),
+            ASTFunctionApplication(ASTIdentifier("bin"),List(ASTIdentifier("A")))), ASTAssignment(ASTIdentifier("C"),
+                ASTBinaryExpression(ASTUnaryExpression(ASTIdentifier("B"),TransposeOp),MultOp,ASTIdentifier("B"))), 
+                ASTOutputResultStatement(ASTAssignment(ASTIdentifier("D"),ASTBinaryExpression(ASTIdentifier("C"),CellwiseDivOp,
+                    ASTFunctionApplication(ASTIdentifier("maxValue"),List(ASTIdentifier("C"))))))))
     
     val inputURL = ClassLoader.getSystemResource("input.m");
     val inputReader = StreamReader(new FileReader(inputURL.toURI().getPath()));

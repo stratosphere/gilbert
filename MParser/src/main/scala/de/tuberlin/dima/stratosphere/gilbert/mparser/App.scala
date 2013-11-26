@@ -17,6 +17,5 @@ object App extends MParser {
       case Success(program,in) => PrettyPrinter.printProgram(program, 0)
       case f => println("Could not parse program: " + f)
     }
-    
   }
 }

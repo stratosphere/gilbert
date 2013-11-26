@@ -30,9 +30,9 @@ trait MParser extends Parsers {
 
   def program = statementOrFunctionList
 
-  def statementOrFunctionList: Parser[ASTProgram] = rep((statement | functionDefinition) <~ (newlineOrCommaOrSemicolon | eof)) ^^ { case l => ASTProgram(l) }
+  def statementOrFunctionList: Parser[ASTProgram] = rep((statement | functionDefinition) <~ rep(newlineOrCommaOrSemicolon)) ^^ { case l => ASTProgram(l) }
 
-  def functionDefinition = (FUNCTION ~> opt(functionValues)) ~ identifier ~ functionParams ~ functionBody <~ END ^^ {
+  def functionDefinition = (FUNCTION ~> opt(functionValues)) ~ identifier ~ functionParams ~ functionBody <~ END <~ (newlineOrCommaOrSemicolon | eof) ^^ {
     case None ~ id ~ funParams ~ funBody => ASTFunction(Nil, id, funParams, funBody)
     case Some(funValues) ~ id ~ funParams ~ funBody => ASTFunction(funValues, id, funParams, funBody)
   }
@@ -50,11 +50,16 @@ trait MParser extends Parsers {
   def identifier = elem("identifier", { case Identifier(_) => true case _ => false }) ^^ { case Identifier(id) => ASTIdentifier(id) }
 
   def identifierWithIndex: Parser[ASTIdentifier] = failure("identifier with index is not yet supported")
+  
+  def statement = statementWithResult | statementWithoutResult
+  
+  def nop = (newlineOrCommaOrSemicolon | eof) ^^ { x => ASTNOP}
+  
+  def statementWithoutResult = (forStatement | whileStatement) <~ (newlineOrCommaOrSemicolon | eof)
 
-  def statement = (assignment
-    | expression
-    | forStatement
-    | whileStatement)
+  def statementWithResult = (assignment | expression ) ~ (newlineOrCommaOrSemicolon | eof) ^^ { 
+    case stmt~SEMICOLON => stmt
+    case stmt~_ => ASTOutputResultStatement(stmt) } 
 
   def forStatement: Parser[ASTStatement] = failure("for statement is not yet supported")
 
