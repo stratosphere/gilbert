@@ -12,9 +12,12 @@ object MTypedAst {
   case class TypedFunction(values: List[TypedIdentifier], identifier: TypedIdentifier, parameters: List[TypedExpression], body: TypedProgram) extends TypedStatementOrFunction
 
   sealed abstract class TypedStatement extends TypedStatementOrFunction
-  case class TypedAssignment(lhs: TypedIdentifier, rhs: TypedExpression) extends TypedStatement
+  sealed abstract class TypedStatementWithResult extends TypedStatement
+  case object TypedNOP extends TypedStatement
+  case class TypedOutputResultStatement(statementWithResult: TypedStatementWithResult) extends TypedStatement
+  case class TypedAssignment(lhs: TypedIdentifier, rhs: TypedExpression) extends TypedStatementWithResult
 
-  sealed abstract class TypedExpression extends TypedStatement {
+  sealed abstract class TypedExpression extends TypedStatementWithResult {
     val datatype:MType
   }
 

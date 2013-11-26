@@ -10,10 +10,11 @@ import de.tuberlin.dima.stratosphere.gilbert.mparser.MParser
 object App extends MParser {
   def main(args: Array[String]) {
     val typer = new MTyper{}
-    val input = """ A = load("inputfile",10,2)
-    				B = bin(A)
-    				C = B' * B
-    				D = C ./ maxValue(C)"""
+    val input = """ A = load("inputfile",10,2);
+    				B = bin(A);
+    				C = B' * B;
+    				D = C ./ maxValue(C)
+      """
     val parseResult = program(input)
     
     parseResult match{

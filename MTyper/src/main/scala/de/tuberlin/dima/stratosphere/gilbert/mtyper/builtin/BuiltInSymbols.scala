@@ -26,7 +26,7 @@ object BuiltInSymbols {
     val (t,a,b) = newNTVV()
     val numericType = newNumericTV()
     PolymorphicType(List(
-        FunctionType(MatrixType(t,a,b),MatrixType(t,IntValue(1),IntValue(1))),
+        FunctionType(MatrixType(t,a,b),t),
         FunctionType(numericType,numericType)))
   }
 }

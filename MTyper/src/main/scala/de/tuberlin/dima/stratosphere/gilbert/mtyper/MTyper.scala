@@ -260,7 +260,13 @@ trait MTyper {
     })
   }
 
-  def typeStmt(stmt: ASTStatement) = stmt match {
+  def typeStmt(stmt: ASTStatement): TypedStatement = stmt match {
+    case ASTOutputResultStatement(stmt) => TypedOutputResultStatement(typeStmtWithResult(stmt))
+    case ASTNOP => TypedNOP
+    case x:ASTStatementWithResult => typeStmtWithResult(x)
+  }
+  
+  def typeStmtWithResult(stmt: ASTStatementWithResult): TypedStatementWithResult =  stmt match {
     case ASTAssignment(lhs, rhs) =>
       val typedRHS = typeExpression(rhs)
       updateEnvironment(lhs, extractType(typedRHS))
