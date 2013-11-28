@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.gilbert-lang</groupId>
@@ -8,30 +9,29 @@
   </parent>
   
   <groupId>org.gilbert-lang</groupId>
-  <artifactId>MTyper</artifactId>
-  <version>${typer.version}</version>
+  <artifactId>MRuntime</artifactId>
+  <version>${runtime.version}</version>
   <packaging>jar</packaging>
-  <name>Typer for Matlab</name>
-  <description>Typer for a Matlab-like language</description>
   
   <dependencies>
     <dependency>
-      <groupId>org.gilbert-lang</groupId>
-      <artifactId>MParser</artifactId>
+      <groupId>org.apache.mahout</groupId>
+      <artifactId>mahout-math</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.scala-lang</groupId>
-      <artifactId>scala-library</artifactId>
+      <groupId>org.apache.mahout</groupId>
+      <artifactId>mahout-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
+    	<groupId>org.scala-lang</groupId>
+    	<artifactId>scala-compiler</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.scalatest</groupId>
-      <artifactId>scalatest_${scala-short.version}</artifactId>
+    	<groupId>org.apache.spark</groupId>
+    	<artifactId>spark-core_2.10</artifactId>
     </dependency>
   </dependencies>
+  
   
   <build>
     <sourceDirectory>src/main/scala</sourceDirectory>
