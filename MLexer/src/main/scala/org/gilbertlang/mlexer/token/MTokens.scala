@@ -1,4 +1,4 @@
-package de.tuberlin.dima.stratosphere.gilbert.mlexer.token
+package org.gilbertlang.mlexer.token
 
 import scala.util.parsing.combinator.token._
 
@@ -22,6 +22,14 @@ trait MTokens extends Tokens {
   
   case class FloatingPointLiteral(value: Double) extends Token{
     def chars = "floating point " + value.toString
+  }
+  
+  case class Comment(value: String) extends Token{
+    def chars = "comment " + value
+  }
+  
+  case class TypeAnnotation(value : String) extends Token{
+    def chars = "type annotation " + value
   }
   
   case class Whitespace(whitespace: String) extends Token{

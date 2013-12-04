@@ -7,7 +7,6 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
   
-  <groupId>org.gilbert-lang</groupId>
   <artifactId>MParser</artifactId>
   <version>${parser.version}</version>
   <packaging>jar</packaging>
@@ -31,6 +30,10 @@
       <groupId>org.scalatest</groupId>
       <artifactId>scalatest_${scala-short.version}</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.gilbert-lang</groupId>
+      <artifactId>MLibrary</artifactId>
+   	</dependency>
   </dependencies>
   
   <build>

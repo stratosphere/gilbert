@@ -8,11 +8,11 @@
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
-	<artifactId>MLexer</artifactId>
-	<version>${lexer.version}</version>
+	<artifactId>MLibrary</artifactId>
+	<version>${library.version}</version>
 	<packaging>jar</packaging>
-	<name>Lexer for Matlab</name>
-	<description>Lexer for a Matlab-like language</description>
+	<name>Common symbols and data structures</name>
+	<description>Common symbols and data structures</description>
 
 	<dependencies>
 		<dependency>

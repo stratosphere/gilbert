@@ -1,15 +1,25 @@
-package de.tuberlin.dima.stratosphere.gilbert.mtyper.types
+package org.gilbertlang.mtyper.types
 
-import MTypes._
-import de.tuberlin.dima.stratosphere.gilbert.mparser.ast.MOperators._
-import de.tuberlin.dima.stratosphere.gilbert.mtyper.types.MValues.IntValue
+import org.gilbertlang.mlibrary.MTypes._
+import org.gilbertlang.mlibrary.MOperators._
+import org.gilbertlang.mlibrary.MValues.IntValue
+import org.gilbertlang.mlibrary.MTypes
 
 object MTypedAst {
+   def getType(stmt : TypedStatement): MType = {
+    stmt match{
+      case x:TypedExpression => x.datatype
+      case TypedOutputResultStatement(innerStmt) => getType(innerStmt)
+      case TypedAssignment(lhs,rhs) => rhs.datatype
+      case TypedNOP => VoidType
+    }
+  }
+   
   case class TypedProgram(d: List[TypedStatementOrFunction])
 
   sealed abstract class TypedStatementOrFunction
 
-  case class TypedFunction(values: List[TypedIdentifier], identifier: TypedIdentifier, parameters: List[TypedExpression], body: TypedProgram) extends TypedStatementOrFunction
+  case class TypedFunction(values: List[TypedIdentifier], identifier: TypedIdentifier, parameters: List[TypedIdentifier], body: TypedProgram) extends TypedStatementOrFunction
 
   sealed abstract class TypedStatement extends TypedStatementOrFunction
   sealed abstract class TypedStatementWithResult extends TypedStatement
@@ -30,6 +40,8 @@ object MTypedAst {
   case class TypedUnaryExpression(expression: TypedExpression, operator: UnaryOperator, datatype: MType) extends TypedExpression
   case class TypedBinaryExpression(a: TypedExpression, operator: BinaryOperator, b: TypedExpression, datatype: MType) extends TypedExpression
   case class TypedFunctionApplication(id: TypedIdentifier, args: List[TypedExpression], datatype: MType) extends TypedExpression
+  case class TypedAnonymousFunction(parameters: List[TypedIdentifier], body: TypedExpression, datatype: MType) extends TypedExpression
+  case class TypedFunctionReference(reference: TypedIdentifier, datatype: MType) extends TypedExpression
 
   sealed abstract class TypedScalar extends TypedExpression
   case class TypedInteger(value: Int) extends TypedScalar {

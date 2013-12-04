@@ -1,9 +1,9 @@
-package de.tuberlin.dima.stratosphere.gilbert.mcompiler
+package org.gilbertlang.mcompiler
 
 import scala.util.parsing.input.StreamReader
 import java.io.InputStreamReader
-import de.tuberlin.dima.stratosphere.gilbert.mparser.MParser
-import de.tuberlin.dima.stratosphere.gilbert.mtyper.MTyper
+import org.gilbertlang.mparser.MParser
+import org.gilbertlang.mtyper.MTyper
 import nio.ssc.gilbert.shell.local
 
 /**

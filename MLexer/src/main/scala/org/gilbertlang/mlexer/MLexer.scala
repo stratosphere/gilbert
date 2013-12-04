@@ -1,13 +1,13 @@
-package de.tuberlin.dima.stratosphere.gilbert.mlexer
+package org.gilbertlang.mlexer
 
 import scala.util.parsing.input.Reader
-import de.tuberlin.dima.stratosphere.gilbert.mlexer.token.MTokens
+import org.gilbertlang.mlexer.token.MTokens
 import scala.collection.mutable.ListBuffer
 import scala.util.parsing.input.CharArrayReader
 import scala.util.parsing.input.CharArrayReader.EofCh
-import de.tuberlin.dima.stratosphere.gilbert.mlexer.token.MKeywords
+import org.gilbertlang.mlexer.token.MKeywords
 import scala.collection.immutable.HashSet
-import de.tuberlin.dima.stratosphere.gilbert.mlexer.token.MDelimiters
+import org.gilbertlang.mlexer.token.MDelimiters
 
 trait MLexer extends MScanners with MTokens {
   
@@ -28,7 +28,7 @@ trait MLexer extends MScanners with MTokens {
   implicit def tilde2Str[A <: {def mkString(delim:String):String},B <:{def mkString(delim:String):String}](x: ~[A,B]):{def mkString(delim:String):String} = { new { def mkString(delim:String):String = x._1.mkString("") + x._2.mkString("")}}
 
   def token(previousToken: Token): Parser[Token] =  ( 
-      letter ~ rep(letter | digit) ^^ { case h~t => processIdentifier(h+(t.mkString("")))}
+      letter ~ rep(letter | digit | '_') ^^ { case h~t => processIdentifier(h+(t.mkString("")))}
       | digit ~ rep(digit) ~ opt('.' ~ rep(digit)) ~ (letter('e') | letter('E')) ~ opt(letter('+') | letter('-')) ~ digit ~ rep(digit) ^^ {
         case h~t~p~l~s~e~r => 
           val a = (h::t).mkString("")
@@ -46,11 +46,13 @@ trait MLexer extends MScanners with MTokens {
           FloatingPointLiteral((a+b+l+c+d).toDouble)
       }
       | digit ~ rep(digit) ~ '.' ~ rep(digit) ^^ { case h~t~p~r => FloatingPointLiteral((h+t.mkString("")+p+r.mkString("")).toDouble) }
-      | '.' ~ digit ~ rep(digit) ^^ { case p~h~r => FloatingPointLiteral((p+h+r.mkString("")).toDouble) }
+      | '.' ~ digit ~ rep(digit) ^^ { case p~h~r => FloatingPointLiteral(("0"+p+h+r.mkString("")).toDouble) }
       | digit ~ rep(digit) ^^ { case h~t => IntegerLiteral((h::t).dropWhile(_=='0').mkString("").toInt) }
       | whitespace ~ rep(whitespace) ^^ { case h~t => Whitespace(h+t.mkString(""))}
       | guard(Parser{in => if(isTransposable(previousToken)) Failure("failure",in) else Success("success",in)})~>'\''~>rep( chrExcept(List('\'','\n',EofCh)))<~'\'' ^^ { case l => StringLiteral(l.mkString("")) }
       | '\"'~>rep( chrExcept(List('\"','\n',EofCh)))<~'\"' ^^ { case l => StringLiteral(l.mkString("")) }
+      | '%' ~> '>' ~> rep(chrExcept(List('\n',EofCh))) ^^ { case l => TypeAnnotation(l.mkString("")) }
+      | '%'~> rep(chrExcept(List('\n', EofCh))) ^^ {case l => Comment(l.mkString(""))}
       | EofCh ^^^ EOF
       | delimiterParser
       | failure("illegal character"))

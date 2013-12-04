@@ -1,6 +1,6 @@
-package de.tuberlin.dima.stratosphere.gilbert.mparser.misc
+package org.gilbertlang.mparser.misc
 
-import de.tuberlin.dima.stratosphere.gilbert.mparser.ast.MAst._
+import org.gilbertlang.mparser.ast.MAst._
 
 object PrettyPrinter {
 	def prettyPrint(program: ASTProgram):Unit = {
@@ -21,12 +21,33 @@ object PrettyPrinter {
 	  stmtOrFunc match {
 	    case x:ASTFunction => printFunction(x,indent)
 	    case x:ASTStatement => printStatement(x,indent)
+	    case x:ASTTypeAnnotation => printAnnotation(x,indent)
 	  }
+	}
+	
+	def printAnnotation(annotation: ASTTypeAnnotation, indent: Int){
+	  val indentation = " "*indent
+	  println(indentation + annotation)
 	}
 	
 	def printFunction(function:ASTFunction, indent:Int) = {
 	  val indentation =  " "*indent
-	  println(indentation + "Not yet implemented")
+	  val indentation1 = indentation + " ";
+	  val indentation2 = indentation1+ " ";
+	  println(indentation + "ASTFunction(");
+	  println(indentation1 + "Result(");
+	  function.values foreach {x => println(indentation2 + x)}
+	  println(indentation1 + ")");
+	  println(indentation1 + "Name(")
+	  println(indentation2 + function.identifier);
+	  println(indentation1 + ")")
+	  println(indentation1 + "Parameters(");
+	  function.parameters foreach { x => println(indentation2 + x )}
+	  println(indentation1 + ")");
+	  println(indentation1 + "Body(");
+	  printProgram(function.body,indent+2);
+	  println(indentation1 + ")");
+	  println(indentation + ")")
 	}
 	
 	def printStatement(stmt:ASTStatement, indent:Int):Unit ={
@@ -49,6 +70,7 @@ object PrettyPrinter {
 	
 	def printExpression(exp: ASTExpression, indent:Int):Unit ={
 	  val indentation = " "*indent
+	  val indentation1 = " " + indentation
 	  exp match{
 	    case ASTUnaryExpression(exp,op) => 
 	      println(indentation + "ASTUnaryExpression(")
@@ -68,6 +90,15 @@ object PrettyPrinter {
 	      args foreach { printExpression(_,indent+1)}
 	      println(indentation+ " )");
 	      println(indentation+")")
+	    case ASTAnonymousFunction(parameters, expression) =>
+	      println(indentation + "ASTAnonymousFunction(");
+	      println(indentation1 + "Parameters(");
+	      parameters foreach { printExpression(_, indent+2)}
+	      println(indentation1 + ")")
+	      println(indentation1 +"Body(")
+	      printExpression(expression,indent+2)
+	      println(indentation1+")")
+	      println(indentation + ")")
 	    case _ => println(indentation + exp)   
 	  }
 	}

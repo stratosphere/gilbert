@@ -1,16 +1,18 @@
-package de.tuberlin.dima.stratosphere.gilbert.mlexer.testing
+package org.gilbertlang.mlexer.testing
 
 import org.scalatest.Assertions
-import de.tuberlin.dima.stratosphere.gilbert.mlexer.MLexer
-import de.tuberlin.dima.stratosphere.gilbert.mlexer.token.DiscardWhitespaces
+import org.gilbertlang.mlexer.MLexer
+import org.gilbertlang.mlexer.token.DiscardWhitespaces
 import java.io.FileReader
 import scala.util.parsing.input.StreamReader
-import de.tuberlin.dima.stratosphere.gilbert.mlexer.token.MTokens
+import org.gilbertlang.mlexer.token.MTokens
 import org.scalatest.FunSuite
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.junit.Test
 import org.scalatest.Spec
+import scala.util.parsing.input.CharSequenceReader
+import scala.util.parsing.input.CharArrayReader
 
 class LexerTest extends MLexer with DiscardWhitespaces with Assertions {
   
@@ -21,16 +23,27 @@ class LexerTest extends MLexer with DiscardWhitespaces with Assertions {
         Keyword("("),Identifier("A"),Keyword(")"),Keyword("\n"),Identifier("C"),Keyword("="),
         Identifier("B"),Keyword("\'"),Keyword("*"),Identifier("B"),Keyword("\n"),Identifier("D"),
         Keyword("="),Identifier("C"),Keyword("./"),Identifier("maxValue"),Keyword("("),Identifier("C"),
-        Keyword(")"),Keyword("\n"),Keyword("\n"))
+        Keyword(")"),Keyword("\n"),Keyword("\n"),EOF)
     val lexer = new MLexer with DiscardWhitespaces
     
     val inputFileURL = ClassLoader.getSystemResource("input.m");
     
     val fileReader = new FileReader(inputFileURL.toURI.getPath())
+        
     val streamReader = StreamReader(fileReader)
     
     val result = lex(streamReader)
-     
-    expected.zip(result).foreach{ case (e,r) => expectResult(e)(r)}
+    
+    expectResult(expected)(result)
+  }
+  
+  @Test def testEOFChar(){
+    import scala.util.parsing.input.CharArrayReader.EofCh
+    val expected = List(Identifier("X"),EOF)
+    val input = "X";
+    
+    val result = lex(input)
+    
+    expectResult(expected)(result)
   }
 }

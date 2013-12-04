@@ -22,10 +22,11 @@
   </developers>
   
   <modules>
+  	<module>MLibrary</module>
     <module>MLexer</module>
     <module>MParser</module>
     <module>MTyper</module>
-    <module>Runtime</module>
+    <module>MRuntime</module>
     <module>MCompiler</module>
   </modules>
   
@@ -40,6 +41,7 @@
     <typer.version>0.0.1</typer.version>
     <compiler.version>0.0.1</compiler.version>
     <runtime.version>0.0.1</runtime.version>
+    <library.version>0.0.1</library.version>
   </properties>
   
   <dependencyManagement>
@@ -85,6 +87,11 @@
         <groupId>org.gilbert-lang</groupId>
         <artifactId>MRuntime</artifactId>
         <version>${runtime.version}</version>
+      </dependency>
+      <dependency>
+      	<groupId>org.gilbert-lang</groupId>
+      	<artifactId>MLibrary</artifactId>
+      	<version>${library.version}</version>
       </dependency>
       <dependency>
         <groupId>org.apache.mahout</groupId>

@@ -1,4 +1,4 @@
-package de.tuberlin.dima.stratosphere.gilbert.mlexer.token
+package org.gilbertlang.mlexer.token
 
 trait SelectTokens{
     type Token

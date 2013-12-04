@@ -1,0 +1,1 @@
+fixpoint(@(x) A*x+ epsilon, 1)

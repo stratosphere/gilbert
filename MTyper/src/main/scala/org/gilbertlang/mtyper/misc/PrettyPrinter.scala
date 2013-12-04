@@ -1,6 +1,8 @@
-package de.tuberlin.dima.stratosphere.gilbert.mtyper.misc
+package org.gilbertlang.mtyper.misc
 
-import de.tuberlin.dima.stratosphere.gilbert.mtyper.types.MTypedAst._
+import org.gilbertlang.mtyper.types.MTypedAst._
+import org.gilbertlang.mlibrary.MTypes.MType
+import org.gilbertlang.mlibrary.MTypes._
 
 object PrettyPrinter {
 	def prettyPrint(program: TypedProgram):Unit = {
@@ -26,7 +28,43 @@ object PrettyPrinter {
 	
 	def printFunction(function:TypedFunction, indent:Int) = {
 	  val indentation =  " "*indent
-	  println(indentation + "Not yet implemented")
+	  val indentation1 = " "+indentation
+	  val indentation2 = " "+indentation1
+	  function match{
+	    case TypedFunction(values, id, parameters, body) => {
+	      println(indentation + "TypedFunction(");
+	      println(indentation1 + "Name(");
+	      println(indentation2 + id.value)
+	      println(indentation1 + ")");
+	      printType(id.datatype,indent+2)
+	      printProgram(body,indent+2)
+	      println(indentation + ")");
+	    }
+	  }
+	}
+	
+	def printType(datatype: MType, indent: Int) {
+	  val indentation = " "*indent
+	  val indentation1 =" " + indentation
+	  datatype match{
+	    case IntegerType => println(indentation + "Int")
+	    case FunctionType(parameters, result) => {
+	      println(indentation + "Parameters(")
+	      parameters foreach { printType(_,indent+1)}
+	      println(indentation + ")");
+	      println(indentation + "Result(")
+	      printType(result,indent+1)
+	      println(indentation + ")")
+	    }
+	    case MatrixType(elementType,rows,cols) => {
+	      println(indentation + "Matrix(")
+	      printType(elementType,indent+1)
+	      println(indentation1 + rows)
+	      println(indentation1 + cols)
+	      println(indentation + ")")
+	    }
+	    case x => println(indentation + x)
+	  }
 	}
 	
 	def printStatement(stmt:TypedStatement, indent:Int):Unit ={
@@ -67,7 +105,8 @@ object PrettyPrinter {
 	      args foreach { printExpression(_,indent+1)}
 	      println(indentation+ " )");
 	      println(indentation+"):"+resultType)
-	    case _ => println(indentation + exp)   
+	    case TypedIdentifier(id,datatype) => println(indentation + id + ":" + datatype)
+	    case x => println(indentation + x)
 	  }
 	}
 }

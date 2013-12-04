@@ -1,14 +1,15 @@
-package de.tuberlin.dima.stratosphere.gilbert.mcompiler
+package org.gilbertlang.mcompiler
 
-import de.tuberlin.dima.stratosphere.gilbert.mtyper.types.MTypedAst.TypedProgram
+import org.gilbertlang.mtyper.types.MTypedAst.TypedProgram
 import nio.ssc.gilbert._
-import de.tuberlin.dima.stratosphere.gilbert.mtyper.types.MTypedAst._
-import de.tuberlin.dima.stratosphere.gilbert.mtyper.types.ConvenienceMethods
-import de.tuberlin.dima.stratosphere.gilbert.mtyper.types.MTypes.MatrixType
-import de.tuberlin.dima.stratosphere.gilbert.mtyper.types.MTypes.NumericType
-import de.tuberlin.dima.stratosphere.gilbert.mparser.ast.MOperators._
-import de.tuberlin.dima.stratosphere.gilbert.mcompiler.errors.TypeCompileError
-import de.tuberlin.dima.stratosphere.gilbert.mtyper.builtin.BuiltInSymbols
+import org.gilbertlang.mtyper.types.MTypedAst._
+import org.gilbertlang.mlibrary.ConvenienceMethods
+import org.gilbertlang.mlibrary.MTypes.MatrixType
+import org.gilbertlang.mlibrary.MTypes.NumericType
+import org.gilbertlang.mlibrary.MOperators._
+import org.gilbertlang.mcompiler.errors.TypeCompileError
+import org.gilbertlang.mlibrary.MBuiltinSymbols
+import org.gilbertlang.mtyper.types.MTypedAst
 
 trait MCompiler {
   val assignments = scala.collection.mutable.Map[String, Executable]()
@@ -51,7 +52,7 @@ trait MCompiler {
   def compileIdentifier(identifier: TypedIdentifier) = {
     identifier match {
       case TypedIdentifier(id, _) =>
-        if (BuiltInSymbols.builtInSymbols.contains(id)) {
+        if (MBuiltinSymbols.isSymbol(id)) {
           compileBuiltInSymbol(id)
         } else {
           retrieveExecutable(id)
@@ -144,7 +145,7 @@ trait MCompiler {
         None
       case TypedNOP => None
       case TypedOutputResultStatement(stmt) =>
-        ConvenienceMethods.getType(stmt) match {
+        MTypedAst.getType(stmt) match {
           case _: MatrixType =>
             compileStatement(stmt) match {
               case x: Matrix => Some(WriteMatrix(x))
@@ -169,7 +170,7 @@ trait MCompiler {
       case x: TypedExpression => compileExpression(x)
       case TypedNOP => EmptyExecutable
       case TypedOutputResultStatement(stmt) =>
-        ConvenienceMethods.getType(stmt) match {
+        MTypedAst.getType(stmt) match {
           case _: MatrixType =>
             compileStatement(stmt) match {
               case x: Matrix => WriteMatrix(x)

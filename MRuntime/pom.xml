@@ -8,7 +8,6 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
   
-  <groupId>org.gilbert-lang</groupId>
   <artifactId>MRuntime</artifactId>
   <version>${runtime.version}</version>
   <packaging>jar</packaging>

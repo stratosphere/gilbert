@@ -1,20 +1,22 @@
-package de.tuberlin.dima.stratosphere.gilbert.mtyper
+package org.gilbertlang.mtyper
 
-import de.tuberlin.dima.stratosphere.gilbert.mparser.ast.MAst._
-import types.MTypes._
+import org.gilbertlang.mparser.ast.MAst._
+import org.gilbertlang.mlibrary.MTypes._
+import org.gilbertlang.mlibrary.MTypes.Helper._
 import types.MTypedAst._
-import de.tuberlin.dima.stratosphere.gilbert.mtyper.types.MValues.ValueVar
-import de.tuberlin.dima.stratosphere.gilbert.mparser.ast.MOperators._
-import de.tuberlin.dima.stratosphere.gilbert.mtyper.types.MValues.MValue
-import types.MTypes.Helper._
-import de.tuberlin.dima.stratosphere.gilbert.mtyper.types.MValues.UniversalValue
-import types.MValues.Helper._
-import de.tuberlin.dima.stratosphere.gilbert.mtyper.errors.TypingError
-import builtin.BuiltInSymbols.builtInSymbols
-import de.tuberlin.dima.stratosphere.gilbert.mtyper.errors.TypeNotFoundError
-import types.ConvenienceMethods._
-import de.tuberlin.dima.stratosphere.gilbert.mtyper.types.MValues.ReferenceValue
-import de.tuberlin.dima.stratosphere.gilbert.mtyper.types.MValues.ExpressionValue
+import org.gilbertlang.mlibrary.MValues.ValueVar
+import org.gilbertlang.mlibrary.MOperators._
+import org.gilbertlang.mlibrary.MValues.MValue
+import org.gilbertlang.mlibrary.MValues.Helper._
+import org.gilbertlang.mlibrary.MValues.UniversalValue
+import org.gilbertlang.mtyper.errors.TypingError
+import org.gilbertlang.mlibrary.MBuiltinSymbols
+import org.gilbertlang.mtyper.errors.TypeNotFoundError
+import org.gilbertlang.mlibrary.ConvenienceMethods._
+import org.gilbertlang.mlibrary.MValues.ReferenceValue
+import org.gilbertlang.mlibrary.MValues.IntValue
+import org.gilbertlang.mtyper.errors.TypeNotFoundError
+import org.gilbertlang.mtyper.errors.TypingError
 
 trait MTyper {
   private val typeEnvironment = scala.collection.mutable.Map[String, MType]()
@@ -83,7 +85,8 @@ trait MTyper {
   
   def resolveValueReferences(datatype: MType, arguments: List[TypedExpression]):MType = {
     datatype match{
-      case FunctionType(args, result) => FunctionType(args map {resolveValueReferences(_,arguments)},resolveValueReferences(result,arguments))
+      case FunctionType(args, result) => FunctionType(args map {resolveValueReferences(_,arguments)},
+          resolveValueReferences(result,arguments))
       case PolymorphicType(types) => PolymorphicType(types map { resolveValueReferences(_,arguments)})
       case MatrixType(elementType, rowValue, colValue) => MatrixType(resolveValueReferences(elementType,arguments),
           resolveValueReferences(rowValue,arguments),
@@ -92,9 +95,16 @@ trait MTyper {
     }
   }
   
+  def evaluateExpression(expression: TypedExpression) = {
+    expression match{
+      case TypedInteger(value) => IntValue(value)
+      case _ => throw new NotImplementedError("expression evaluation is not yet fully implemented")
+    }
+  }
+  
   def resolveValueReferences(value: MValue, arguments: List[TypedExpression]): MValue = {
     value match{
-      case ReferenceValue(idx) => ExpressionValue(arguments(idx))
+      case ReferenceValue(idx) => evaluateExpression(arguments(idx))
       case x => x
     }
   }
@@ -113,7 +123,8 @@ trait MTyper {
       a match {
         case UniversalType(x: NumericTypeVar) => replacement.getOrElseUpdate(x, newNumericTV())
         case UniversalType(x: TypeVar) => replacement.getOrElseUpdate(x, newTV())
-        case MatrixType(elementType, rowValue, colValue) => MatrixType(helper(elementType), specializeValue(rowValue), specializeValue(colValue))
+        case MatrixType(elementType, rowValue, colValue) => MatrixType(helper(elementType), specializeValue(rowValue), 
+            specializeValue(colValue))
         case PolymorphicType(types) => PolymorphicType(types map { helper(_) })
         case FunctionType(args, result) => FunctionType(args map { helper(_) }, helper(result))
         case x => x
@@ -155,7 +166,8 @@ trait MTyper {
         case x @ UniversalType(_: AbstractTypeVar) => x
         case UniversalType(_) => throw new TypingError("Universal cannot be applied to a non type variable")
         case x: AbstractTypeVar => if (freeVars contains x) x else UniversalType(x)
-        case MatrixType(elementType, rowValue, colValue) => MatrixType(helper(elementType), generalizeValue(rowValue), generalizeValue(colValue))
+        case MatrixType(elementType, rowValue, colValue) => MatrixType(helper(elementType), generalizeValue(rowValue), 
+            generalizeValue(colValue))
         case PolymorphicType(types) => PolymorphicType(types map { helper(_) })
         case FunctionType(args, result) => FunctionType(args map { helper(_) }, helper(result))
         case x => x
@@ -245,15 +257,45 @@ trait MTyper {
       }
     }
   }
+  
+  def extractIdentifiers(program: ASTProgram): Set[ASTIdentifier] = {
+    Set()
+  }
+  
+  def extractIdentifiers(expression: ASTExpression): Set[String] ={
+    def helper(exp: ASTExpression): Set[String] = {
+      exp match{
+        case ASTIdentifier(id) => Set(id)
+        case _:ASTInteger | _:ASTFloatingPoint | _:ASTString => Set()
+        case ASTUnaryExpression(exp,_) => helper(exp)
+        case ASTBinaryExpression(a,_,b) => helper(a) ++ helper(b)
+        case ASTAnonymousFunction(parameters,body) => helper(body) -- 
+        (parameters map { case ASTIdentifier(id) => id}).toSet
+        case ASTFunctionApplication(function,parameters) => helper(function) ++ (parameters flatMap {helper(_)}).toSet
+        case ASTFunctionReference(function) => helper(function)
+        case ASTMatrix(rows) => rows flatMap { helper(_) } toSet
+        case ASTMatrixRow(exps) => exps flatMap { helper(_) } toSet
+      }
+    }
+    helper(expression)
+  }
 
   def updateEnvironment(identifier: String, datatype: MType) = typeEnvironment.update(identifier, datatype)
   def updateEnvironment(identifier: ASTIdentifier, datatype: MType) = typeEnvironment.update(identifier.value, datatype)
 
-  def getType(id: String): Option[MType] = typeEnvironment.get(id)
+  def getType(id: String): Option[MType] = {
+    MBuiltinSymbols.getType(id) match {
+      case None => typeEnvironment.get(id) match{
+        case Some(t) => Some(resolveType(t))
+        case None => None
+      }
+      case Some(t) => Some(resolveType(t))
+    }
+  }
 
   def extractType(expression: TypedExpression) = expression.datatype
 
-  def typeProgram(program: ASTProgram) = program match {
+  def typeProgram(program: ASTProgram): TypedProgram = program match {
     case ASTProgram(stmtFuncList) => TypedProgram(stmtFuncList map {
       case stmt: ASTStatement => typeStmt(stmt)
       case func: ASTFunction => typeFunction(func)
@@ -292,24 +334,51 @@ trait MTyper {
       val typedExpressionA = typeExpression(a)
       val typedExpressionB = typeExpression(b)
       val operatorType = typeBinaryOperator(op)
-      val unificationResult = resolvePolymorphicType(operatorType, FunctionType(List(extractType(typedExpressionA), extractType(typedExpressionB)), newTV()))
+      val unificationResult = resolvePolymorphicType(operatorType, FunctionType(List(extractType(typedExpressionA), 
+          extractType(typedExpressionB)), newTV()))
 
       unificationResult match {
-        case Some((FunctionType(_,resultType), _)) => TypedBinaryExpression(typedExpressionA, op, typedExpressionB, resultType)
+        case Some((FunctionType(_,resultType), _)) => TypedBinaryExpression(typedExpressionA, op, typedExpressionB, 
+            resultType)
         case _ => throw new TypeNotFoundError("Binary expression: " + ASTBinaryExpression(a, op, b))
       }
-    case ASTFunctionApplication(func, arguments) =>
+    case ASTFunctionApplication(func, arguments) => {
       val typedFunc = typeIdentifier(func)
       val functionType = extractType(typedFunc)
       val typedArguments = arguments map {typeExpression(_)}
       
-      val unificationResult = resolvePolymorphicType(functionType,FunctionType(typedArguments map {extractType(_)},newTV()))
+      val unificationResult = resolvePolymorphicType(functionType,FunctionType(typedArguments map 
+          {extractType(_)},newTV()))
       
       unificationResult match{
         case Some((FunctionType(_,resultType),_)) => 
           TypedFunctionApplication(typedFunc,typedArguments,resolveValueReferences(resultType,typedArguments))
         case _ => throw new TypeNotFoundError("Function application could not be typed")
       }
+    }
+    case ASTAnonymousFunction(parameters, body) => {
+      val oldMappings = parameters map { case ASTIdentifier(id) => (id,typeEnvironment.get(id))}
+      parameters foreach {case ASTIdentifier(id) => updateEnvironment(id,newTV())}
+
+      val typedBody = typeExpression(body)
+      
+      val typedParameters = parameters map { case ASTIdentifier(id) => TypedIdentifier(id,getType(id) match{
+        case Some(t) => t
+        case _ => throw new TypeNotFoundError("Type for parameter " + id + " could not be found")
+      })}
+      
+      val functionType = FunctionType(typedParameters map { extractType(_) }, extractType(typedBody))
+      TypedAnonymousFunction(typedParameters, typedBody,functionType)
+    }
+    case ASTFunctionReference(function) => {
+      val typedIdentifier = typeIdentifier(function)
+      
+      typedIdentifier.datatype match{
+        case x:FunctionType => TypedFunctionReference(typedIdentifier,typedIdentifier.datatype)
+        case _ => throw new TypingError("Identifier " + function.value + " has to be a function type")
+      }
+    }
+      
 
     case _ => throw new NotImplementedError("")
   }
@@ -388,12 +457,29 @@ trait MTyper {
 
   def typeIdentifier(id: ASTIdentifier) = id match {
     case ASTIdentifier(id) =>
-      val idType = builtInSymbols.getOrElse(id, getType(id) match {
+      val idType = getType(id) match{
         case Some(t) => t
         case _ => throw new TypeNotFoundError("Identifier " + id + " is unbound")
-      })
+      }
       TypedIdentifier(id, specializeType(idType))
   }
 
-  def typeFunction(func: ASTFunction) = throw new NotImplementedError("Function typing is not yet supported")
+  def typeFunction(func: ASTFunction) = {
+    val typer = new MTyper{}
+    
+    func.values foreach { typer.updateEnvironment(_, newTV())}
+    func.parameters foreach { typer.updateEnvironment(_, newTV())}
+    
+    val typedBody = typer.typeProgram(func.body)
+    val typedValues = func.values map { typer.typeIdentifier(_)}
+    val typedParameters = func.values map {typer.typeIdentifier(_)}
+    val resultType = if (typedValues.length == 0) VoidType else extractType(typedValues(0)) 
+    val typedFunctionName = TypedIdentifier(func.identifier.value,
+        generalizeType(FunctionType(typedParameters map { extractType(_)},resultType)))
+    
+    updateEnvironment(func.identifier, typedFunctionName.datatype)
+        
+    TypedFunction(typedValues, typedFunctionName, typedParameters, typedBody)
+  }
+  
 }

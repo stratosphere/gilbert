@@ -8,7 +8,6 @@
   </parent>
   
   
-  <groupId>org.gilbert-lang</groupId>
   <artifactId>MCompiler</artifactId>
   <version>${compiler.version}</version>
   <name>Compiler for Matlab</name>

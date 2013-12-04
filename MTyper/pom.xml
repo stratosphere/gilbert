@@ -7,7 +7,6 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
   
-  <groupId>org.gilbert-lang</groupId>
   <artifactId>MTyper</artifactId>
   <version>${typer.version}</version>
   <packaging>jar</packaging>
@@ -18,6 +17,10 @@
     <dependency>
       <groupId>org.gilbert-lang</groupId>
       <artifactId>MParser</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.gilbert-lang</groupId>
+      <artifactId>MLibrary</artifactId>
     </dependency>
     <dependency>
       <groupId>org.scala-lang</groupId>

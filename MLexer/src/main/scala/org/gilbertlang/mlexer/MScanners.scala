@@ -1,11 +1,12 @@
-package de.tuberlin.dima.stratosphere.gilbert.mlexer
+package org.gilbertlang.mlexer
 
 import scala.util.parsing.combinator.Parsers
-import de.tuberlin.dima.stratosphere.gilbert.mlexer.token.MTokens
+import org.gilbertlang.mlexer.token.MTokens
 import scala.util.parsing.input.Reader
 import scala.util.parsing.input.CharArrayReader
-import de.tuberlin.dima.stratosphere.gilbert.mlexer.token.SelectTokens
+import org.gilbertlang.mlexer.token.SelectTokens
 import scala.collection.mutable.ListBuffer
+import org.gilbertlang.input.EOFReader
 
 trait MScanners extends Parsers with SelectTokens {
   type Token
@@ -20,7 +21,7 @@ trait MScanners extends Parsers with SelectTokens {
   def lex(in: String): List[Token] = lex(new CharArrayReader(in.toCharArray()));
 
   def lex(in: Reader[Char]): List[Token] = {
-    var scanner = new MScanner(in)
+    var scanner = this(in)
     val listBuffer = new ListBuffer[Token]();
 
     while (!scanner.atEnd) {
@@ -33,22 +34,29 @@ trait MScanners extends Parsers with SelectTokens {
 
   def apply(in: Reader[Char]) = new MScanner(in)
   def apply(in: String) = new MScanner(in)
+  
+  implicit def reader2EOFReader[T](reader: Reader[T]):EOFReader[T] = {
+    reader match{
+      case x:EOFReader[T] => x
+      case _ => EOFReader(reader)
+    }
+  }
 
-  class MScanner(in: Reader[Elem], previousToken: Token) extends Reader[Token] {
-    def this(in: String) = this(new CharArrayReader(in.toCharArray()), voidToken)
+  class MScanner(in: EOFReader[Elem], previousToken: Token) extends Reader[Token] {
+    def this(in: String) = this(EOFReader(new CharArrayReader(in.toCharArray())), voidToken)
 
-    def this(in: Reader[Char]) = this(in, voidToken)
+    def this(in: EOFReader[Char]) = this(in, voidToken)
 
     private val (tok, rest1, rest2) = getNextToken(in)
 
-    private def getNextToken(in: Reader[Char]): (Token, Reader[Elem], Reader[Elem]) = {
+    private def getNextToken(in: EOFReader[Char]): (Token, EOFReader[Elem], EOFReader[Elem]) = {
       token(previousToken)(in) match {
-        case Success(token, in1) => if (accept(token)) (token, in, in1) else getNextToken(in1)
-        case NoSuccess(msg, in1) => (errorToken(msg), in1, skip(in1))
+        case Success(token, in1:EOFReader[Elem]) => if (accept(token)) (token, in, in1) else getNextToken(in1)
+        case NoSuccess(msg, in1:EOFReader[Elem]) => (errorToken(msg), in1, skip(in1))
       }
     }
 
-    private def skip(in: Reader[Char]): Reader[Char] = {
+    private def skip(in: EOFReader[Char]): EOFReader[Char] = {
       if (in.atEnd) in else in.rest
     }
 

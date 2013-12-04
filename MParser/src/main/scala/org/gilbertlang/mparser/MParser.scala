@@ -1,53 +1,63 @@
-package de.tuberlin.dima.stratosphere.gilbert.mparser
+package org.gilbertlang.mparser
 
 import scala.util.parsing.combinator.Parsers
-import de.tuberlin.dima.stratosphere.gilbert.mlexer.token.MTokens
-import de.tuberlin.dima.stratosphere.gilbert.mlexer.MScanners
-import de.tuberlin.dima.stratosphere.gilbert.mlexer.MLexer
+import org.gilbertlang.mlexer.token.MTokens
+import org.gilbertlang.mlexer.MScanners
+import org.gilbertlang.mlexer.MLexer
 import scala.util.parsing.input.Reader
-import de.tuberlin.dima.stratosphere.gilbert.mlexer.token.MKeywords
-import de.tuberlin.dima.stratosphere.gilbert.mlexer.token.MDelimiters
-import de.tuberlin.dima.stratosphere.gilbert.mlexer.token.DiscardWhitespaces
-import de.tuberlin.dima.stratosphere.gilbert.mparser.ast.MAst
-import de.tuberlin.dima.stratosphere.gilbert.mparser.ast.MOperators._
+import org.gilbertlang.mlexer.token.MKeywords
+import org.gilbertlang.mlexer.token.MDelimiters
+import org.gilbertlang.mlexer.token.DiscardWhitespaces
+import org.gilbertlang.mparser.ast.MAst
+import org.gilbertlang.mlibrary.MOperators._
+import org.gilbertlang.mlexer.token.DiscardComments
 
 trait MParser extends Parsers {
   import MAst._
   import language.implicitConversions
 
-  val lexer = new MLexer with DiscardWhitespaces {}
+  val lexer = new MLexer with DiscardWhitespaces with DiscardComments {}
   type Elem = lexer.Token
 
-  import lexer.{ Keyword, Identifier, StringLiteral, IntegerLiteral, FloatingPointLiteral, EOF }
+  import lexer.{ Keyword, Identifier, StringLiteral, IntegerLiteral, FloatingPointLiteral, EOF, TypeAnnotation }
 
   import MKeywords._
   import MDelimiters._
 
   implicit def tokenReader(input: Reader[Char]): Reader[Elem] = lexer(input)
   implicit def tokenReader(input: String): Reader[Elem] = lexer(input)
-  implicit def keyword2Parser(keyword: MKeywords): Parser[MKeywords] = this.elem("keyword " + keyword.toString, { case Keyword(name) if name == keyword.toString => true case _ => false }) ^^ { _ => keyword } 
-  implicit def delimiter2Parser(delimiter: MDelimiters): Parser[MDelimiters] = this.elem("keyword " + delimiter.toString, { case Keyword(name) if name == delimiter.toString => true case _ => false }) ^^ { _ => delimiter }
+  implicit def keyword2Parser(keyword: MKeywords): Parser[MKeywords] = this.elem("keyword " + keyword.toString, 
+      { case Keyword(name) if name == keyword.toString => true case _ => false }) ^^ { _ => keyword } 
+  implicit def delimiter2Parser(delimiter: MDelimiters): Parser[MDelimiters] = this.elem("keyword " + 
+      delimiter.toString, { case Keyword(name) if name == delimiter.toString => true case _ => false }) ^^ 
+      { _ => delimiter }
 
   def program = statementOrFunctionList
 
-  def statementOrFunctionList: Parser[ASTProgram] = rep((statement | functionDefinition) <~ rep(newlineOrCommaOrSemicolon)) ^^ { case l => ASTProgram(l) }
+  def statementOrFunctionList: Parser[ASTProgram] = rep(newlineOrCommaOrSemicolon) ~> rep((statement | functionDefinition | typeAnnotation) <~ 
+      rep(newlineOrCommaOrSemicolon) <~ opt(EOF)) ^^ { case l => ASTProgram(l) }
 
-  def functionDefinition = (FUNCTION ~> opt(functionValues)) ~ identifier ~ functionParams ~ functionBody <~ END <~ (newlineOrCommaOrSemicolon | eof) ^^ {
-    case None ~ id ~ funParams ~ funBody => ASTFunction(Nil, id, funParams, funBody)
-    case Some(funValues) ~ id ~ funParams ~ funBody => ASTFunction(funValues, id, funParams, funBody)
+  def functionDefinition = (FUNCTION ~> opt(functionValues)) ~ identifier ~ functionParams ~ newlineOrCommaOrSemicolon ~
+  functionBody <~ END <~ (newlineOrCommaOrSemicolon | eof) ^^ {
+    case None ~ id ~ funParams ~ _ ~ funBody => ASTFunction(Nil, id, funParams, funBody)
+    case Some(funValues) ~ id ~ funParams ~ _ ~ funBody => ASTFunction(funValues, id, funParams, funBody)
   }
 
   def functionValues = (identifier <~ EQ ^^ { i => List(i) }
     | (LBRACKET ~> identifierList) <~ RBRACKET <~ EQ
     | failure("function value expected"))
 
-  def functionParams = (LPAREN ~> identifierList) <~ RPAREN
+  def functionParams = LPAREN ~> identifierList <~ RPAREN
 
-  def functionBody = (LBRACE ~> statementOrFunctionList) <~ RBRACE
+  def functionBody = statementOrFunctionList 
+  
+  def identifierList = repsep(identifier,COMMA)
 
-  def identifierList = identifier ~ repsep(identifier, COMMA) ^^ { case h ~ t => h :: t }
-
-  def identifier = elem("identifier", { case Identifier(_) => true case _ => false }) ^^ { case Identifier(id) => ASTIdentifier(id) }
+  def identifier = elem("identifier", { case Identifier(_) => true case _ => false }) ^^ 
+  { case Identifier(id) => ASTIdentifier(id) }
+  
+  def typeAnnotation = elem("type annotation", { case TypeAnnotation(_) => true case _ => false}) ^^
+  { case TypeAnnotation(value) => ASTTypeAnnotation(value)}
 
   def identifierWithIndex: Parser[ASTIdentifier] = failure("identifier with index is not yet supported")
   
@@ -76,22 +86,22 @@ trait MParser extends Parsers {
 
   def arithmeticExpression = aexp1
 
-  def aexp1 = aexp2 ~ repsep(aexp2, LOGICAL_OR) ^^ {
+  def aexp1: Parser[ASTExpression] = aexp2 ~ rep(LOGICAL_OR ~> aexp2) ^^ {
     case e ~ Nil => e
-    case e ~ l => l.foldLeft(e) { (x, y) => ASTBinaryExpression(x, LogicalOrOp, y) }
+    case e ~ l => l.foldLeft(e) { (x, y) => ASTBinaryExpression(x, LogicalOrOp, y)}
   }
 
-  def aexp2 = aexp3 ~ repsep(aexp3, LOGICAL_AND) ^^ {
+  def aexp2 = aexp3 ~ rep(LOGICAL_AND ~> aexp3) ^^ {
     case e ~ Nil => e
     case e ~ l => l.foldLeft(e) { (x, y) => ASTBinaryExpression(x, LogicalAndOp, y) }
   }
 
-  def aexp3 = aexp4 ~ repsep(aexp4, BINARY_OR) ^^ {
+  def aexp3 = aexp4 ~ rep(BINARY_OR ~> aexp4) ^^ {
     case e ~ Nil => e
     case e ~ l => l.foldLeft(e) { (x, y) => ASTBinaryExpression(x, BinaryOrOp, y) }
   }
 
-  def aexp4 = aexp5 ~ repsep(aexp5, BINARY_AND) ^^ {
+  def aexp4 = aexp5 ~ rep(BINARY_AND ~> aexp5) ^^ {
     case e ~ Nil => e
     case e ~ l => l.foldLeft(e) { (x, y) => ASTBinaryExpression(x, BinaryAndOp, y) }
   }
@@ -153,15 +163,26 @@ trait MParser extends Parsers {
     | identifier
     | scalar
     | matrix
-    | stringLiteral )
+    | stringLiteral
+    | anonymousFunction
+    | functionReference)
     
-  def functionApplication = identifier ~ LPAREN ~ repsep(expression, COMMA) ~ RPAREN ^^ { case exp~LPAREN~args~RPAREN => ASTFunctionApplication(exp,args) }
+    def functionReference = AT ~> identifier ^^ { x => ASTFunctionReference(x)}
+    
+    def anonymousFunction = (AT ~> LPAREN ~> identifierList <~ RPAREN) ~ expression ^^ 
+    { case parameters ~ expression => ASTAnonymousFunction(parameters, expression)}
+    
+  def functionApplication = identifier ~ LPAREN ~ repsep(expression, COMMA) ~ RPAREN ^^ 
+  { case exp~LPAREN~args~RPAREN => ASTFunctionApplication(exp,args) }
 
   def scalar: Parser[ASTScalar] = integerLiteral | floatingPointLiteral
 
-  def integerLiteral = elem("integer", { case IntegerLiteral(_) => true case _ => false }) ^^ { case IntegerLiteral(i) => ASTInteger(i) }
-  def floatingPointLiteral = elem("floating point", { case FloatingPointLiteral(_) => true case _ => false }) ^^ { case FloatingPointLiteral(f) => ASTFloatingPoint(f) }
-  def stringLiteral = elem("string", { case StringLiteral(_) => true case _ => false }) ^^ { case StringLiteral(s) => ASTString(s) }
+  def integerLiteral = elem("integer", { case IntegerLiteral(_) => true case _ => false }) ^^ 
+  { case IntegerLiteral(i) => ASTInteger(i) }
+  def floatingPointLiteral = elem("floating point", { case FloatingPointLiteral(_) => true case _ => false }) ^^ 
+  { case FloatingPointLiteral(f) => ASTFloatingPoint(f) }
+  def stringLiteral = elem("string", { case StringLiteral(_) => true case _ => false }) ^^ 
+  { case StringLiteral(s) => ASTString(s) }
 
   def matrix = LBRACKET ~> repsep(matrixRow, newlineOrSemicolon) <~ RBRACKET ^^ { m => ASTMatrix(m) }
   def matrixRow = repsep(expression, COMMA) ^^ { r => ASTMatrixRow(r) }
@@ -180,4 +201,11 @@ trait MParser extends Parsers {
   def newlineOrSemicolon = SEMICOLON | NEWLINE
   def newlineOrCommaOrSemicolon = SEMICOLON | NEWLINE | COMMA
   def eof = accept(EOF)
+  
+  def parse(input: Reader[Char]) = {
+    phrase(program)(input) match{
+      case Success(result,_) => Some(result)
+      case _ => None
+    }
+  }
 }

@@ -1,9 +1,9 @@
 package org.gilbertlang.mlexer.token
 
-trait DiscardWhitespaces extends SelectTokens with MTokens {
+trait DiscardComments extends SelectTokens with MTokens {
   abstract override def accept(token: Token) = {
-    token match {
-      case Whitespace(_) => false
+    token match{
+      case _: Comment => false
       case _ => super.accept(token)
     }
   }

@@ -1,4 +1,4 @@
-package de.tuberlin.dima.stratosphere.gilbert.mlexer.token
+package org.gilbertlang.mlexer.token
 
 object MDelimiters extends Enumeration {
 	type MDelimiters = Value
@@ -34,4 +34,5 @@ object MDelimiters extends Enumeration {
 	val BINARY_AND = Value("&");
 	val EXP = Value("^");
 	val CELLWISE_EXP = Value(".^")
+	val AT = Value("@")
 }
