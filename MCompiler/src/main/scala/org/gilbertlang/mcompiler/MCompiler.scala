@@ -120,7 +120,7 @@ trait MCompiler {
           case "load" => execs match {
             case List(string(file), scalar(rows), scalar(cols)) => LoadMatrix(file, rows.toInt, cols.toInt)
           }
-          case "bin" => execs match {
+          case "binarize" => execs match {
             case List(x: Matrix) => CellwiseMatrixTransformation(x, ScalarOperation.Binarize)
           }
           case "maxValue" => execs match {
