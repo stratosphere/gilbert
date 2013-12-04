@@ -13,4 +13,12 @@ object ConvenienceMethods {
   def newNTVV() = {
     (newNumericTV(),newVV(),newVV())
   }
+  
+  def newUNTVV() = {
+    (untv, uvv, uvv)
+  }
+  
+  def newUTVV() = {
+    (utv,uvv,uvv)
+  }
 }

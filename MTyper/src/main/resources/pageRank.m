@@ -6,7 +6,7 @@ N = load("hdfs://datasets/largenetwork.csv", numVertices, numVertices);
 A = spones(N);
 
 % outdegree per vertex
-d = sum(A, 2);
+d = sumRow(A);
 
 % create the column-stochastic transition matrix
 T = (diag(1 ./ d) * A)';

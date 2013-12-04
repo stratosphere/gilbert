@@ -7,8 +7,8 @@ object MTypes {
     private var typeVarCounter:Int =0
     def mt(elementType: MType, rows: MValue, columns:MValue) = MatrixType(elementType,rows,columns)
     def pt(types: List[FunctionType]) = PolymorphicType(types)
-    def utv = UniversalType(TypeVar())
-    def untv = UniversalType(NumericTypeVar())
+    def utv = UniversalType(newTV())
+    def untv = UniversalType(newNumericTV())
     
     def newTV() = {
       val result = TypeVar(typeVarCounter)

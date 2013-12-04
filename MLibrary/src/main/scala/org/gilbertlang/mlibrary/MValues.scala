@@ -4,7 +4,7 @@ object MValues {
   object Helper{
     private var valueVarCounter = 0
     def uv(value: ValueVar) = UniversalValue(value)
-    def uvv = UniversalValue(ValueVar())
+    def uvv = UniversalValue(newVV())
     def newVV() = {
       val result = ValueVar(valueVarCounter)
       valueVarCounter += 1
