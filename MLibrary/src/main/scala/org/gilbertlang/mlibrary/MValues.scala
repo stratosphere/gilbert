@@ -16,5 +16,21 @@ object MValues {
   case class IntValue(value: Int) extends MValue
   //case class ExpressionValue(value: TypedExpression) extends MValue
   case class ReferenceValue(reference: Int) extends MValue
-  case class UniversalValue(value: ValueVar) extends MValue
+  case class UniversalValue(value: ValueVar) extends MValue{
+//    override def equals(uv: Any): Boolean = {
+//      (uv,this) match{
+//        case (UniversalValue(x:ValueVar), UniversalValue(y:ValueVar)) => true
+//        case (UniversalValue(x), UniversalValue(y)) => x == y
+//        case _ => false
+//      }
+//    }
+//    
+//    override def hashCode():Int = {
+//      this match{
+//        case UniversalValue(x:ValueVar) => 41*ValueVar().hashCode + ValueVar().hashCode
+//        case _ => super.hashCode
+//      }
+//    }
+  }
+  case object UndefinedValue extends MValue
 }

@@ -19,9 +19,10 @@ object MTypedAst {
 
   sealed abstract class TypedStatementOrFunction
 
-  case class TypedFunction(values: List[TypedIdentifier], identifier: TypedIdentifier, parameters: List[TypedIdentifier], body: TypedProgram) extends TypedStatementOrFunction
-
+  case class TypedFunction(values: List[TypedIdentifier], identifier: TypedIdentifier, 
+      parameters: List[TypedIdentifier], body: TypedProgram) extends TypedStatementOrFunction
   sealed abstract class TypedStatement extends TypedStatementOrFunction
+  
   sealed abstract class TypedStatementWithResult extends TypedStatement
   case object TypedNOP extends TypedStatement
   case class TypedOutputResultStatement(statementWithResult: TypedStatementWithResult) extends TypedStatement

@@ -9,6 +9,7 @@ import org.gilbertlang.mlibrary.MOperators._
 import org.gilbertlang.mlibrary.MValues.MValue
 import org.gilbertlang.mlibrary.MValues.Helper._
 import org.gilbertlang.mlibrary.MValues.UniversalValue
+import org.gilbertlang.mlibrary.MValues.UndefinedValue
 import org.gilbertlang.mtyper.errors.TypingError
 import org.gilbertlang.mlibrary.MBuiltinSymbols
 import org.gilbertlang.mtyper.errors.TypeNotFoundError
@@ -35,7 +36,10 @@ trait MTyper {
           result = typeVarMapping(result)
         }
 
-        result
+        result match{
+          case _:AbstractTypeVar => result
+          case _ => resolveType(result)
+        }
       case MatrixType(elementType, rowValue, colValue) => MatrixType(resolveType(elementType),
         resolveValue(rowValue), resolveValue(colValue))
       case FunctionType(args, result) => FunctionType(args map { resolveType(_) }, resolveType(result))
@@ -215,6 +219,8 @@ trait MTyper {
         case (x, y: ValueVar) =>
           updateValueVarMapping(y, x)
           Some(x)
+        case (UndefinedValue, _) => Some(UndefinedValue)
+        case (_ , UndefinedValue) => Some(UndefinedValue)
         case _ => None
       }
     }
@@ -509,7 +515,7 @@ trait MTyper {
 
     val typedBody = typer.typeProgram(func.body)
     val typedValues = func.values map { typer.typeIdentifier(_) }
-    val typedParameters = func.values map { typer.typeIdentifier(_) }
+    val typedParameters = func.parameters map { typer.typeIdentifier(_) }
     val resultType = if (typedValues.length == 0) VoidType else extractType(typedValues(0))
     val typedFunctionName = TypedIdentifier(func.identifier.value,
       generalizeType(FunctionType(typedParameters map { extractType(_) }, resultType)))

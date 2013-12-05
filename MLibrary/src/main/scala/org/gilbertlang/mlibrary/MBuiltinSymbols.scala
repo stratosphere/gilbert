@@ -45,7 +45,6 @@ object MBuiltinSymbols extends BuiltinSymbols {
   
   def sumType = {
     val (t,a,b) = newUTVV()
-    val (c,d) = (uvv,uvv)
     val t1 = utv
     val a1 = uvv
     val t2 = utv
@@ -53,7 +52,7 @@ object MBuiltinSymbols extends BuiltinSymbols {
     PolymorphicType(List(
         FunctionType(MatrixType(t1,a1,IntValue(1)),MatrixType(t1,IntValue(1),IntValue(1))),
         FunctionType(MatrixType(t2,IntValue(1),a2),MatrixType(t2,IntValue(1),IntValue(1))),
-        FunctionType((MatrixType(t,a,b),IntegerType),MatrixType(t,c,d))))
+        FunctionType((MatrixType(t,a,b),IntegerType),MatrixType(t,UndefinedValue,UndefinedValue))))
   }
   
   def sumRowType = {
