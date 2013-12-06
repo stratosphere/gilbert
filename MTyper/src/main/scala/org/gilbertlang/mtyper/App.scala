@@ -1,10 +1,12 @@
 package org.gilbertlang.mtyper
 
-import org.gilbertlang.mtyper.misc.PrettyPrinter._
 import org.gilbertlang.mparser.misc.PrettyPrinter
 import org.gilbertlang.mparser.MParser
 import scala.util.parsing.input.StreamReader
 import java.io.FileReader
+import org.gilbertlang.mtyper.misc.Printer
+import org.gilbertlang.mtyper.misc.VerbosePrinter
+
 
 /**
  * @author ${user.name}
@@ -25,7 +27,7 @@ object App extends MParser {
     parseResult match{
       case Success(program,rest) => 
         val typedProgram = typer.typeProgram(program)
-        printProgram(typedProgram,0)
+        Printer.print(typedProgram)
       case _ => println("Could not type program")
     }
     

@@ -32,7 +32,7 @@ object MTypes {
       this == other || (wideableTypes.getOrElse(this, List()) contains (other))
   }
 
-  trait NumericType extends MType
+  sealed trait NumericType extends MType
   case object IntegerType extends NumericType
   case object DoubleType extends NumericType
   case object CharacterType extends MType

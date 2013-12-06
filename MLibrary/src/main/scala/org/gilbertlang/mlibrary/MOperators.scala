@@ -33,4 +33,30 @@ object MOperators {
   case object CellwiseMultOp extends CellwiseBinaryOperator
   case object CellwiseDivOp extends CellwiseBinaryOperator
   case object CellwiseExpOp extends CellwiseBinaryOperator
+  
+  def op2Str(operator:Operator): String = {
+    operator match{
+      case TransposeOp => "'"
+      case CellwiseTransposeOp => ".'"
+      case PrePlusOp => "+"
+      case PreMinusOp => "-"
+      case ExpOp => "^"
+      case PlusOp => "+"
+      case MinusOp => "-"
+      case MultOp => "*"
+      case DivOp => "/"
+      case BinaryAndOp => "&"
+      case BinaryOrOp => "|"
+      case LogicalAndOp => "&&"
+      case LogicalOrOp => "||"
+      case GTOp => ">"
+      case GTEOp => ">="
+      case LTOp => "<"
+      case LTEOp => "<="
+      case DEQOp => "=="
+      case CellwiseMultOp => ".*"
+      case CellwiseDivOp => "./"
+      case CellwiseExpOp => ".^"
+    }
+  }
 }
