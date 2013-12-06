@@ -12,7 +12,6 @@ import org.gilbertlang.mlibrary.MValues.Helper._
 import org.gilbertlang.mparser.MParser
 import scala.util.parsing.input.StreamReader
 import java.io.InputStreamReader
-import org.gilbertlang.mtyper.misc.PrettyPrinter
 import org.gilbertlang.mlibrary.MOperators.{ DivOp, PlusOp }
 
 class MTyperTest extends Comparisons {

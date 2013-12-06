@@ -8,11 +8,11 @@
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
-	<artifactId>MLexer</artifactId>
+	<artifactId>GLexer</artifactId>
 	<version>${lexer.version}</version>
 	<packaging>jar</packaging>
-	<name>Lexer for Matlab</name>
-	<description>Lexer for a Matlab-like language</description>
+	<name>Lexer for Gilbert</name>
+	<description>Lexer for Gilbert, a Matlab-like language</description>
 
 	<dependencies>
 		<dependency>

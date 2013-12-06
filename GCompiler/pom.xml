@@ -7,17 +7,13 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
   
-  <artifactId>MParser</artifactId>
-  <version>${parser.version}</version>
-  <packaging>jar</packaging>
-  <name>Parser for Matlab</name>
-  <description>Parser for a Matlab-like language</description>
   
+  <artifactId>GCompiler</artifactId>
+  <version>${compiler.version}</version>
+  <name>Compiler for Gilbert</name>
+  <description>Compiler for Gilbert, a Matlab-like language</description>
+
   <dependencies>
-    <dependency>
-      <groupId>org.gilbert-lang</groupId>
-      <artifactId>MLexer</artifactId>
-    </dependency>
     <dependency>
       <groupId>org.scala-lang</groupId>
       <artifactId>scala-library</artifactId>
@@ -27,15 +23,19 @@
       <artifactId>junit</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.scalatest</groupId>
-      <artifactId>scalatest_${scala-short.version}</artifactId>
+    	<groupId>org.gilbert-lang</groupId>
+    	<artifactId>GTyper</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.gilbert-lang</groupId>
-      <artifactId>MLibrary</artifactId>
-   	</dependency>
+    	<groupId>org.gilbert-lang</groupId>
+    	<artifactId>GRuntime</artifactId>
+    </dependency>
+    <dependency>
+    	<groupId>org.scalatest</groupId>
+    	<artifactId>scalatest_${scala-short.version}</artifactId>
+    </dependency>
   </dependencies>
-  
+
   <build>
     <sourceDirectory>src/main/scala</sourceDirectory>
     <testSourceDirectory>src/test/scala</testSourceDirectory>

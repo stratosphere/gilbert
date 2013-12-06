@@ -8,7 +8,7 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
   
-  <artifactId>MRuntime</artifactId>
+  <artifactId>GRuntime</artifactId>
   <version>${runtime.version}</version>
   <packaging>jar</packaging>
   

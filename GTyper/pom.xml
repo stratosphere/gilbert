@@ -7,13 +7,21 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
   
+  <artifactId>GTyper</artifactId>
+  <version>${typer.version}</version>
+  <packaging>jar</packaging>
+  <name>Typer for Gilbert</name>
+  <description>Typer for Gilbert, a Matlab-like language</description>
   
-  <artifactId>MCompiler</artifactId>
-  <version>${compiler.version}</version>
-  <name>Compiler for Matlab</name>
-  <description>Compiler for a Matlab-like language</description>
-
   <dependencies>
+    <dependency>
+      <groupId>org.gilbert-lang</groupId>
+      <artifactId>GParser</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.gilbert-lang</groupId>
+      <artifactId>GLibrary</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.scala-lang</groupId>
       <artifactId>scala-library</artifactId>
@@ -23,19 +31,11 @@
       <artifactId>junit</artifactId>
     </dependency>
     <dependency>
-    	<groupId>org.gilbert-lang</groupId>
-    	<artifactId>MTyper</artifactId>
-    </dependency>
-    <dependency>
-    	<groupId>org.gilbert-lang</groupId>
-    	<artifactId>MRuntime</artifactId>
-    </dependency>
-    <dependency>
-    	<groupId>org.scalatest</groupId>
-    	<artifactId>scalatest_${scala-short.version}</artifactId>
+      <groupId>org.scalatest</groupId>
+      <artifactId>scalatest_${scala-short.version}</artifactId>
     </dependency>
   </dependencies>
-
+  
   <build>
     <sourceDirectory>src/main/scala</sourceDirectory>
     <testSourceDirectory>src/test/scala</testSourceDirectory>
