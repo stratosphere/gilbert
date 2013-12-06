@@ -1,4 +1,4 @@
-package nio.ssc.gilbert.runtime.stratosphere
+package org.gilbertlang.runtime.stratosphere
 
 //import io.ssc.gilbert.{WriteMatrix, LoadMatrix, Executable}
 //import eu.stratosphere.scala.{ScalaPlan, DataStream, TextFile}

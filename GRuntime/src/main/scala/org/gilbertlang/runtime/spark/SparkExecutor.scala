@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package nio.ssc.gilbert.runtime.spark
+package org.gilbertlang.runtime.spark
 
 import scala.collection.JavaConversions._
 
@@ -26,8 +26,8 @@ import org.apache.spark.SparkContext
 import org.apache.spark.SparkContext._
 
 import org.apache.spark.rdd.RDD
-import nio.ssc.gilbert.runtime.VectorFunctions
-import nio.ssc.gilbert._
+import org.gilbertlang.runtime.VectorFunctions
+import org.gilbertlang._
 
 import org.apache.mahout.math.function.Functions
 import org.apache.mahout.math.random.Normal

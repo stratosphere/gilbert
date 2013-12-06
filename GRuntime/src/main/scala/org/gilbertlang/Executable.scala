@@ -1,4 +1,4 @@
-package nio.ssc.gilbert
+package org.gilbertlang
 
 import java.util.concurrent.atomic.AtomicInteger
 

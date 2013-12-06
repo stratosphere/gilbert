@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package nio.ssc.gilbert
+package org.gilbertlang
 
 import ScalarsOperation._
 import CellwiseOperation._

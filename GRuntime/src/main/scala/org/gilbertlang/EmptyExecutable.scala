@@ -1,3 +1,3 @@
-package nio.ssc.gilbert
+package org.gilbertlang
 
 case object EmptyExecutable extends Executable

@@ -4,7 +4,7 @@ import scala.util.parsing.input.StreamReader
 import java.io.InputStreamReader
 import org.gilbertlang.mparser.MParser
 import org.gilbertlang.mtyper.MTyper
-import nio.ssc.gilbert.shell.local
+import org.gilbertlang.shell.local
 
 /**
  * @author ${user.name}

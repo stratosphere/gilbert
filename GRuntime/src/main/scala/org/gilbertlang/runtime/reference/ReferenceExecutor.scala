@@ -16,16 +16,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package nio.ssc.gilbert.runtime.reference
+package org.gilbertlang.runtime.reference
 
-import nio.ssc.gilbert._
+import org.gilbertlang._
 import org.apache.mahout.math.{DenseMatrix, SparseRowMatrix}
 import runtime.VectorFunctions
 import org.apache.mahout.math.random.Normal
 import optimization.CommonSubexpressionDetector
 import shell.{local, printPlan}
 import scala.io.Source
-import nio.ssc.gilbert.EmptyExecutable
+import org.gilbertlang.EmptyExecutable
 
 object ReferenceExecutorRunner {
 

@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package nio.ssc.gilbert.optimization
+package org.gilbertlang.optimization
 
-import nio.ssc.gilbert._
+import org.gilbertlang._
 
 abstract class Walker {
 

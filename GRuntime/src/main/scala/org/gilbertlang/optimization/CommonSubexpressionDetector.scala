@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package nio.ssc.gilbert.optimization
+package org.gilbertlang.optimization
 
-import nio.ssc.gilbert.Executable
+import org.gilbertlang.Executable
 
 //TODO needs to handle iteration state!
 class CommonSubexpressionDetector extends Walker {

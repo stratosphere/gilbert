@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package nio.ssc.gilbert
+package org.gilbertlang
 
 object load {
   def apply(path: String, numRows: Int, numColumns: Int) = LoadMatrix(path, numRows, numColumns)

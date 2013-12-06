@@ -1,7 +1,7 @@
 package org.gilbertlang.mcompiler
 
 import org.gilbertlang.mtyper.types.MTypedAst.TypedProgram
-import nio.ssc.gilbert._
+import org.gilbertlang._
 import org.gilbertlang.mtyper.types.MTypedAst._
 import org.gilbertlang.mlibrary.ConvenienceMethods
 import org.gilbertlang.mlibrary.MTypes.MatrixType

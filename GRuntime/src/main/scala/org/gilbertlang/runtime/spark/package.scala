@@ -1,6 +1,6 @@
-package nio.ssc.gilbert.runtime
+package org.gilbertlang.runtime
 
-import org.apache.mahout.math.{Matrix, MatrixWritable, VectorWritable, Vector}
+import _root_.org.apache.mahout.math.{Matrix, MatrixWritable, VectorWritable, Vector}
 
 package object spark {
 

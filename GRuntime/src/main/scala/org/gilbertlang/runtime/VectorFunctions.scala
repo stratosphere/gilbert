@@ -16,35 +16,30 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package nio.ssc.gilbert.shell
+package org.gilbertlang.runtime
 
-import nio.ssc.gilbert._
-import runtime.reference.{ReferenceExecutorRunner, ReferenceExecutor}
+import org.apache.mahout.math.function.{DoubleDoubleFunction, VectorFunction, DoubleFunction}
+import org.apache.mahout.math.Vector
 
-import runtime.spark.SparkExecutor
+object VectorFunctions {
 
-object local {
-  def apply(executable: Executable) = {
-
-    val write = executable match {
-      case (matrix: Matrix) => WriteMatrix(matrix)
-      case (scalar: ScalarRef) => WriteScalarRef(scalar)
-      case _ => executable
-    }
-
-    new ReferenceExecutor().run(write)
+  def binarize = new DoubleFunction {
+    def apply(value: Double) = { if (value == 0) { 0 } else { 1 } }
   }
- }
 
-object withSpark {
-  def apply(executable: Executable) = {
+  def sum = new VectorFunction {
+    def apply(v: Vector) = v.zSum()
+  }
 
-    val write = executable match {
-      case (matrix: Matrix) => WriteMatrix(matrix)
-      //case (vector: Vector) => WriteVector(vector)
-      case (scalar: ScalarRef) => WriteScalarRef(scalar)
-    }
+  def lengthSquared = new VectorFunction {
+    def apply(v: Vector) = v.getLengthSquared()
+  }
 
-    new SparkExecutor().run(write)
+  def max = new DoubleDoubleFunction {
+    def apply(value1: Double, value2: Double) = math.max(value1, value2)
+  }
+
+  def identity = new DoubleFunction {
+    def apply(value: Double) = value
   }
 }

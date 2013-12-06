@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package nio.ssc.gilbert.shell
+package org.gilbertlang.shell
 
-import nio.ssc.gilbert._
+import org.gilbertlang._
 
 object printPlan {
 

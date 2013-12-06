@@ -1,4 +1,4 @@
-package nio.ssc.gilbert.runtime.spark
+package org.gilbertlang.runtime.spark
 
 import com.esotericsoftware.kryo.{Kryo, Serializer}
 import com.esotericsoftware.kryo.io.{Input, Output}
