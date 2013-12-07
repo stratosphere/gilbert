@@ -1,12 +1,13 @@
-package org.gilbertlang.mtyper.types
+package org.gilbertlang
+package gtyper.types
 
-import org.gilbertlang.mlibrary.MTypes._
-import org.gilbertlang.mlibrary.MOperators._
-import org.gilbertlang.mlibrary.MValues.IntValue
-import org.gilbertlang.mlibrary.MTypes
+import glibrary.Types._
+import glibrary.Operators._
+import glibrary.Values.IntValue
+import glibrary.Types
 
-object MTypedAst {
-   def getType(stmt : TypedStatement): MType = {
+object GTypedAst {
+   def getType(stmt : TypedStatement): Type = {
     stmt match{
       case x:TypedExpression => x.datatype
       case TypedOutputResultStatement(innerStmt) => getType(innerStmt)
@@ -29,20 +30,20 @@ object MTypedAst {
   case class TypedAssignment(lhs: TypedIdentifier, rhs: TypedExpression) extends TypedStatementWithResult
 
   sealed abstract class TypedExpression extends TypedStatementWithResult {
-    val datatype:MType
+    val datatype:Type
   }
 
   case class TypedString(value: String) extends TypedExpression {
     val datatype = MatrixType(CharacterType, IntValue(1), IntValue(value.length()))
   }
-  case class TypedIdentifier(value: String, datatype: MType) extends TypedExpression
+  case class TypedIdentifier(value: String, datatype: Type) extends TypedExpression
   case class TypedMatrix(value: List[TypedMatrixRow], datatype: MatrixType) extends TypedExpression
   case class TypedMatrixRow(value: List[TypedExpression])
-  case class TypedUnaryExpression(expression: TypedExpression, operator: UnaryOperator, datatype: MType) extends TypedExpression
-  case class TypedBinaryExpression(a: TypedExpression, operator: BinaryOperator, b: TypedExpression, datatype: MType) extends TypedExpression
-  case class TypedFunctionApplication(id: TypedIdentifier, args: List[TypedExpression], datatype: MType) extends TypedExpression
-  case class TypedAnonymousFunction(parameters: List[TypedIdentifier], body: TypedExpression, datatype: MType) extends TypedExpression
-  case class TypedFunctionReference(reference: TypedIdentifier, datatype: MType) extends TypedExpression
+  case class TypedUnaryExpression(expression: TypedExpression, operator: UnaryOperator, datatype: Type) extends TypedExpression
+  case class TypedBinaryExpression(a: TypedExpression, operator: BinaryOperator, b: TypedExpression, datatype: Type) extends TypedExpression
+  case class TypedFunctionApplication(id: TypedIdentifier, args: List[TypedExpression], datatype: Type) extends TypedExpression
+  case class TypedAnonymousFunction(parameters: List[TypedIdentifier], body: TypedExpression, datatype: Type) extends TypedExpression
+  case class TypedFunctionReference(reference: TypedIdentifier, datatype: Type) extends TypedExpression
 
   sealed abstract class TypedScalar extends TypedExpression
   case class TypedInteger(value: Int) extends TypedScalar {

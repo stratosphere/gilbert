@@ -1,15 +1,14 @@
-package org.gilbertlang.mcompiler
+package org.gilbertlang.gcompiler
 
-import org.gilbertlang.mtyper.types.MTypedAst.TypedProgram
 import org.gilbertlang._
-import org.gilbertlang.mtyper.types.MTypedAst._
-import org.gilbertlang.mlibrary.ConvenienceMethods
-import org.gilbertlang.mlibrary.MTypes.MatrixType
-import org.gilbertlang.mlibrary.MTypes.NumericType
-import org.gilbertlang.mlibrary.MOperators._
-import org.gilbertlang.mcompiler.errors.TypeCompileError
-import org.gilbertlang.mlibrary.MBuiltinSymbols
-import org.gilbertlang.mtyper.types.MTypedAst
+import org.gilbertlang.gtyper.types.GTypedAst._
+import org.gilbertlang.glibrary.ConvenienceMethods
+import org.gilbertlang.glibrary.Types.MatrixType
+import org.gilbertlang.glibrary.Types.NumericType
+import org.gilbertlang.glibrary.Operators._
+import errors.TypeCompileError
+import org.gilbertlang.glibrary.GBuiltinSymbols
+import org.gilbertlang.gtyper.types.GTypedAst
 
 trait MCompiler {
   val assignments = scala.collection.mutable.Map[String, Executable]()

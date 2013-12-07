@@ -1,4 +1,4 @@
-package org.gilbertlang.mlexer.token
+package org.gilbertlang.glexer.token
 
 trait SelectTokens{
     type Token

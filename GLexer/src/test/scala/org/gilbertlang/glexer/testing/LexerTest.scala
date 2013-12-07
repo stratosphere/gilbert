@@ -1,11 +1,11 @@
-package org.gilbertlang.mlexer.testing
+package org.gilbertlang.glexer.testing
 
 import org.scalatest.Assertions
-import org.gilbertlang.mlexer.MLexer
-import org.gilbertlang.mlexer.token.DiscardWhitespaces
+import org.gilbertlang.glexer.GLexer
+import org.gilbertlang.glexer.token.DiscardWhitespaces
 import java.io.FileReader
 import scala.util.parsing.input.StreamReader
-import org.gilbertlang.mlexer.token.MTokens
+import org.gilbertlang.glexer.token.GTokens
 import org.scalatest.FunSuite
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -14,7 +14,7 @@ import org.scalatest.Spec
 import scala.util.parsing.input.CharSequenceReader
 import scala.util.parsing.input.CharArrayReader
 
-class LexerTest extends MLexer with DiscardWhitespaces with Assertions {
+class LexerTest extends GLexer with DiscardWhitespaces with Assertions {
   
   @Test def testMLexer() {
     val expected = List(Identifier("A"),Keyword("="),Identifier("load"),Keyword("("),
@@ -24,7 +24,7 @@ class LexerTest extends MLexer with DiscardWhitespaces with Assertions {
         Identifier("B"),Keyword("\'"),Keyword("*"),Identifier("B"),Keyword("\n"),Identifier("D"),
         Keyword("="),Identifier("C"),Keyword("./"),Identifier("maxValue"),Keyword("("),Identifier("C"),
         Keyword(")"),Keyword("\n"),Keyword("\n"),EOF)
-    val lexer = new MLexer with DiscardWhitespaces
+    val lexer = new GLexer with DiscardWhitespaces
     
     val inputFileURL = ClassLoader.getSystemResource("input.m");
     

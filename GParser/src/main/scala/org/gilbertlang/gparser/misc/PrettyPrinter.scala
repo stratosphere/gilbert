@@ -1,6 +1,7 @@
-package org.gilbertlang.mparser.misc
+package org.gilbertlang.gparser
+package misc
 
-import org.gilbertlang.mparser.ast.MAst._
+import ast.GAst._
 
 object PrettyPrinter {
 	def prettyPrint(program: ASTProgram):Unit = {

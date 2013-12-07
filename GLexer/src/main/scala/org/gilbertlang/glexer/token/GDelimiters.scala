@@ -1,7 +1,7 @@
-package org.gilbertlang.mlexer.token
+package org.gilbertlang.glexer.token
 
-object MDelimiters extends Enumeration {
-	type MDelimiters = Value
+object GDelimiters extends Enumeration {
+	type GDelimiters = Value
 	
 	val EQ = Value("=")
 	val SEMICOLON = Value(";");

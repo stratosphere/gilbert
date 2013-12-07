@@ -9,7 +9,6 @@
 	</parent>
 
 	<artifactId>GLibrary</artifactId>
-	<version>${library.version}</version>
 	<packaging>jar</packaging>
 	<name>Common symbols and data structures</name>
 	<description>Common symbols and data structures</description>

@@ -1,10 +1,10 @@
-package org.gilbertlang.mlibrary
+package org.gilbertlang.glibrary
 
-import org.gilbertlang.mlibrary.MValues._
+import Values._
 
 trait ValuePrinter {
   
-  def prettyString(value: MValue): String ={
+  def prettyString(value: Value): String ={
     value match{
       case UndefinedValue => "Undefined"
       case IntValue(value) => value.toString

@@ -1,18 +1,18 @@
-package org.gilbertlang.mcompiler
+package org.gilbertlang.gcompiler
 
 import scala.util.parsing.input.StreamReader
 import java.io.InputStreamReader
-import org.gilbertlang.mparser.MParser
-import org.gilbertlang.mtyper.MTyper
+import org.gilbertlang.gparser.GParser
+import org.gilbertlang.gtyper.GTyper
 import org.gilbertlang.shell.local
 
 /**
  * @author ${user.name}
  */
-object App extends MParser {
+object App extends GParser {
   def main(args: Array[String]) {
     val inputReader = StreamReader(new InputStreamReader(ClassLoader.getSystemResourceAsStream("input.m")))
-    val typer = new MTyper {}
+    val typer = new GTyper {}
     val compiler = new MCompiler {}
 
     val ast = phrase(program)(inputReader)

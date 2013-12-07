@@ -9,7 +9,6 @@
   
   
   <artifactId>GCompiler</artifactId>
-  <version>${compiler.version}</version>
   <name>Compiler for Gilbert</name>
   <description>Compiler for Gilbert, a Matlab-like language</description>
 

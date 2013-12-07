@@ -1,10 +1,10 @@
-package org.gilbertlang.mlibrary
+package org.gilbertlang.glibrary
 
-import org.gilbertlang.mlibrary.MTypes._
+import Types._
 
 trait TypePrinter extends ValuePrinter{
 
-  def prettyString(mtype: MType): String = {
+  def prettyString(mtype: Type): String = {
     mtype match {
       case IntegerType => "Int"
       case DoubleType => "Double"

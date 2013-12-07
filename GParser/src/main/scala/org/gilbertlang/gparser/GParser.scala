@@ -1,34 +1,35 @@
-package org.gilbertlang.mparser
+package org.gilbertlang
+package gparser
 
 import scala.util.parsing.combinator.Parsers
-import org.gilbertlang.mlexer.token.MTokens
-import org.gilbertlang.mlexer.MScanners
-import org.gilbertlang.mlexer.MLexer
+import glexer.token.GTokens
+import glexer.GScanners
+import glexer.GLexer
 import scala.util.parsing.input.Reader
-import org.gilbertlang.mlexer.token.MKeywords
-import org.gilbertlang.mlexer.token.MDelimiters
-import org.gilbertlang.mlexer.token.DiscardWhitespaces
-import org.gilbertlang.mparser.ast.MAst
-import org.gilbertlang.mlibrary.MOperators._
-import org.gilbertlang.mlexer.token.DiscardComments
+import glexer.token.GKeywords
+import glexer.token.GDelimiters
+import glexer.token.DiscardWhitespaces
+import ast.GAst
+import glibrary.Operators._
+import glexer.token.DiscardComments
 
-trait MParser extends Parsers {
-  import MAst._
+trait GParser extends Parsers {
+  import GAst._
   import language.implicitConversions
 
-  val lexer = new MLexer with DiscardWhitespaces with DiscardComments {}
+  val lexer = new GLexer with DiscardWhitespaces with DiscardComments {}
   type Elem = lexer.Token
 
   import lexer.{ Keyword, Identifier, StringLiteral, IntegerLiteral, FloatingPointLiteral, EOF, TypeAnnotation }
 
-  import MKeywords._
-  import MDelimiters._
+  import GKeywords._
+  import GDelimiters._
 
   implicit def tokenReader(input: Reader[Char]): Reader[Elem] = lexer(input)
   implicit def tokenReader(input: String): Reader[Elem] = lexer(input)
-  implicit def keyword2Parser(keyword: MKeywords): Parser[MKeywords] = this.elem("keyword " + keyword.toString, 
+  implicit def keyword2Parser(keyword: GKeywords): Parser[GKeywords] = this.elem("keyword " + keyword.toString, 
       { case Keyword(name) if name == keyword.toString => true case _ => false }) ^^ { _ => keyword } 
-  implicit def delimiter2Parser(delimiter: MDelimiters): Parser[MDelimiters] = this.elem("keyword " + 
+  implicit def delimiter2Parser(delimiter: GDelimiters): Parser[GDelimiters] = this.elem("keyword " + 
       delimiter.toString, { case Keyword(name) if name == delimiter.toString => true case _ => false }) ^^ 
       { _ => delimiter }
 

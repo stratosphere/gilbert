@@ -1,8 +1,10 @@
-package org.gilbertlang.mparser.ast
+package org.gilbertlang
+package gparser
+package ast
 
-import org.gilbertlang.mlibrary.MOperators._
+import glibrary.Operators._
 
-object MAst {
+object GAst {
 	case class ASTProgram(d: List[ASTStatementOrFunction] )
 	
 	sealed abstract class ASTStatementOrFunction

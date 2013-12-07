@@ -1,7 +1,7 @@
-package org.gilbertlang.mlexer.token
+package org.gilbertlang.glexer.token
 
-object MKeywords extends Enumeration{
-	type MKeywords = Value
+object GKeywords extends Enumeration{
+	type GKeywords = Value
 	
 	val IF = Value("if");
 	val FOR = Value("for");

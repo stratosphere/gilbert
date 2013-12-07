@@ -1,14 +1,14 @@
-package org.gilbertlang.mlexer
+package org.gilbertlang.glexer
 
 import scala.util.parsing.combinator.Parsers
-import org.gilbertlang.mlexer.token.MTokens
+import token.GTokens
 import scala.util.parsing.input.Reader
 import scala.util.parsing.input.CharArrayReader
-import org.gilbertlang.mlexer.token.SelectTokens
+import token.SelectTokens
 import scala.collection.mutable.ListBuffer
 import org.gilbertlang.input.EOFReader
 
-trait MScanners extends Parsers with SelectTokens {
+trait GScanners extends Parsers with SelectTokens {
   type Token
   type Elem = Char
 
@@ -21,7 +21,7 @@ trait MScanners extends Parsers with SelectTokens {
   def lex(in: String): List[Token] = lex(new CharArrayReader(in.toCharArray()));
 
   def lex(in: Reader[Char]): List[Token] = {
-    var scanner = this(in)
+    var scanner = GScanners.this(in)
     val listBuffer = new ListBuffer[Token]();
 
     while (!scanner.atEnd) {
@@ -32,8 +32,8 @@ trait MScanners extends Parsers with SelectTokens {
     listBuffer.toList
   }
 
-  def apply(in: Reader[Char]) = new MScanner(in)
-  def apply(in: String) = new MScanner(in)
+  def apply(in: Reader[Char]) = new GScanner(in)
+  def apply(in: String) = new GScanner(in)
   
   implicit def reader2EOFReader[T](reader: Reader[T]):EOFReader[T] = {
     reader match{
@@ -42,7 +42,7 @@ trait MScanners extends Parsers with SelectTokens {
     }
   }
 
-  class MScanner(in: EOFReader[Elem], previousToken: Token) extends Reader[Token] {
+  class GScanner(in: EOFReader[Elem], previousToken: Token) extends Reader[Token] {
     def this(in: String) = this(EOFReader(new CharArrayReader(in.toCharArray())), voidToken)
 
     def this(in: EOFReader[Char]) = this(in, voidToken)
@@ -64,7 +64,7 @@ trait MScanners extends Parsers with SelectTokens {
     override def offset = in.offset
 
     def first = tok
-    def rest = new MScanner(rest2, tok);
+    def rest = new GScanner(rest2, tok);
     def pos = rest1.pos;
 
     def atEnd = in.atEnd || (getNextToken(in) match { case (_, nextIn, _) => nextIn.atEnd })

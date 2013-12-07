@@ -1,12 +1,12 @@
-package org.gilbertlang.mlibrary
+package org.gilbertlang.glibrary
 
-import org.gilbertlang.mlibrary.MTypes._
-import org.gilbertlang.mlibrary.MTypes.Helper._
-import org.gilbertlang.mlibrary.MValues._
-import org.gilbertlang.mlibrary.MValues.Helper._
+import Types._
+import Types.Helper._
+import Values._
+import Values.Helper._
 import ConvenienceMethods._
 
-object MBuiltinSymbols extends BuiltinSymbols {
+object GBuiltinSymbols extends BuiltinSymbols {
   val binarize = Symbol("binarize", binarizeType)
   val load = Symbol("load", loadType)
   val maxValue = Symbol("maxValue", maxValueType)

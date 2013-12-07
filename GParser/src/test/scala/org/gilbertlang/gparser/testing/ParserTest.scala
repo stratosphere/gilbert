@@ -1,18 +1,20 @@
-package org.gilbertlang.mparser.testing
+package org.gilbertlang
+package gparser
+package testing
 
-import org.gilbertlang.mparser.MParser
-import org.gilbertlang.mparser.ast.MAst
+import gparser.GParser
+import ast.GAst
 import org.scalatest.Assertions
 import org.junit.Test
 import scala.util.parsing.input.StreamReader
 import java.io.FileReader
-import org.gilbertlang.mlibrary.MOperators._
+import glibrary.Operators._
 import java.io.InputStreamReader
-import org.gilbertlang.mparser.misc.PrettyPrinter
+import misc.PrettyPrinter
 
-class MParserTest extends MParser with Assertions {
+class MParserTest extends GParser with Assertions {
 
-  import MAst._
+  import GAst._
   import lexer.EOF
 
   @Test def testMParser {
@@ -44,7 +46,7 @@ class MParserTest extends MParser with Assertions {
         ASTAssignment(ASTIdentifier("X"), ASTIdentifier("A"))))))))
     val ast = phrase(program)(inputReader)
 
-    import org.gilbertlang.mparser.misc
+    import gparser.misc
 
     ast match {
       case Success(program: ASTProgram, _) =>

@@ -1,11 +1,11 @@
-package org.gilbertlang.mlibrary
+package org.gilbertlang.glibrary
 
-import MValues.MValue
+import Values.Value
 
-object MTypes {
+object Types {
   object Helper{
     private var typeVarCounter:Int =0
-    def mt(elementType: MType, rows: MValue, columns:MValue) = MatrixType(elementType,rows,columns)
+    def mt(elementType: Type, rows: Value, columns:Value) = MatrixType(elementType,rows,columns)
     def pt(types: List[FunctionType]) = PolymorphicType(types)
     def utv = UniversalType(newTV())
     def untv = UniversalType(newNumericTV())
@@ -23,39 +23,39 @@ object MTypes {
     }
   }
   
-  private val wideableTypes = scala.collection.immutable.Map[MType, List[MType]](
+  private val wideableTypes = scala.collection.immutable.Map[Type, List[Type]](
     IntegerType -> List(DoubleType),
     CharacterType -> List(DoubleType, IntegerType))
 
-  sealed trait MType {
-    def isWideableTo(other: MType): Boolean =
-      this == other || (wideableTypes.getOrElse(this, List()) contains (other))
+  sealed trait Type {
+    def isWideableTo(other: Type): Boolean =
+      Type.this == other || (wideableTypes.getOrElse(Type.this, List()) contains (other))
   }
 
-  sealed trait NumericType extends MType
+  sealed trait NumericType extends Type
   case object IntegerType extends NumericType
   case object DoubleType extends NumericType
-  case object CharacterType extends MType
+  case object CharacterType extends Type
 
-  case class FunctionType(parameters: List[MType], value: MType) extends MType {
-    def this(parameter: MType, value: MType) = this(List(parameter), value )
+  case class FunctionType(parameters: List[Type], value: Type) extends Type {
+    def this(parameter: Type, value: Type) = this(List(parameter), value )
   }
 
-  case class MatrixType(elementType: MType, rows: MValue, columns: MValue) extends MType
+  case class MatrixType(elementType: Type, rows: Value, columns: Value) extends Type
   
-  sealed trait AbstractTypeVar extends MType
+  sealed trait AbstractTypeVar extends Type
   case class NumericTypeVar(id: Int = -1) extends AbstractTypeVar with NumericType
   case class TypeVar(id: Int = -1) extends AbstractTypeVar
-  case class UniversalType(universalType: AbstractTypeVar) extends MType
+  case class UniversalType(universalType: AbstractTypeVar) extends Type
   
-  case class PolymorphicType(types:List[MType]) extends MType
+  case class PolymorphicType(types:List[Type]) extends Type
 
-  case object VoidType extends MType
-  case object UndefinedType extends MType
+  case object VoidType extends Type
+  case object UndefinedType extends Type
   
   object FunctionType {
-    def apply(parameter: MType, value: MType) = new FunctionType(parameter, value)
-    def apply(parameters: (MType, MType), value: MType) = new FunctionType(List(parameters._1, parameters._2), value)
-    def apply(parameters: (MType, MType, MType), value: MType) = new FunctionType(List(parameters._1, parameters._2,parameters._3), value)
+    def apply(parameter: Type, value: Type) = new FunctionType(parameter, value)
+    def apply(parameters: (Type, Type), value: Type) = new FunctionType(List(parameters._1, parameters._2), value)
+    def apply(parameters: (Type, Type, Type), value: Type) = new FunctionType(List(parameters._1, parameters._2,parameters._3), value)
   }
 }

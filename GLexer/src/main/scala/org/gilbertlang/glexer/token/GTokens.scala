@@ -1,8 +1,8 @@
-package org.gilbertlang.mlexer.token
+package org.gilbertlang.glexer.token
 
 import scala.util.parsing.combinator.token._
 
-trait MTokens extends Tokens {
+trait GTokens extends Tokens {
   
   case class Identifier(identifier: String) extends Token{
     def chars = "identifier "+ identifier

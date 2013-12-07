@@ -1,9 +1,11 @@
-package org.gilbertlang.mtyper.misc
+package org.gilbertlang
+package gtyper
+package misc
 
-import org.gilbertlang.mtyper.types.MTypedAst._
-import org.gilbertlang.mlibrary.MTypes._
-import org.gilbertlang.mlibrary.MOperators._
-import org.gilbertlang.mlibrary.TypePrinter
+import types.GTypedAst._
+import glibrary.Types._
+import glibrary.Operators._
+import glibrary.TypePrinter
 
 trait TypedASTPrinter extends TypePrinter {
   val spacing: String
@@ -22,12 +24,12 @@ trait TypedASTPrinter extends TypePrinter {
     indentStr(indentation) + str + "\n"
   }
 
-  private def verboseType(datatype: MType): String = {
+  private def verboseType(datatype: Type): String = {
     if (verbose) str(": ") + prettyString(datatype)
     else ""
   }
   
-  private def nonVerboseType(datatype: MType): String ={
+  private def nonVerboseType(datatype: Type): String ={
     if (!verbose) str(": ") + prettyString(datatype)
     else ""
   }

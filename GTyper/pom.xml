@@ -8,7 +8,6 @@
   </parent>
   
   <artifactId>GTyper</artifactId>
-  <version>${typer.version}</version>
   <packaging>jar</packaging>
   <name>Typer for Gilbert</name>
   <description>Typer for Gilbert, a Matlab-like language</description>

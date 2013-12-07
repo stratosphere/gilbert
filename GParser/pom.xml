@@ -8,7 +8,6 @@
   </parent>
   
   <artifactId>GParser</artifactId>
-  <version>${parser.version}</version>
   <packaging>jar</packaging>
   <name>Parser for Gilbert</name>
   <description>Parser for Gilbert, a Matlab-like language</description>

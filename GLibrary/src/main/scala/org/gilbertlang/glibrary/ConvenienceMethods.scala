@@ -1,8 +1,8 @@
-package org.gilbertlang.mlibrary
+package org.gilbertlang.glibrary
 
-import MTypes.Helper._
-import MTypes._
-import MValues.Helper._
+import Types.Helper._
+import Types._
+import Values.Helper._
 
 
 object ConvenienceMethods {

@@ -1,6 +1,6 @@
-package org.gilbertlang.mlibrary
+package org.gilbertlang.glibrary
 
-import org.gilbertlang.mlibrary.MTypes.MType
+import Types.Type
 
 abstract class BuiltinSymbols {
   protected var smap = collection.mutable.HashMap[String,SymbolEntry]()
@@ -20,13 +20,13 @@ abstract class BuiltinSymbols {
     smap.contains(symbol)
   }
 
-  def apply(symbol: String): Option[MType] = {
+  def apply(symbol: String): Option[Type] = {
     getType(symbol)
   }
   
-  protected def Symbol(symbol:String, symbolType: MType) = SymbolEntry(symbol,symbolType)
+  protected def Symbol(symbol:String, symbolType: Type) = SymbolEntry(symbol,symbolType)
   
-  protected case class SymbolEntry(symbol: String, symbolType : MType){
+  protected case class SymbolEntry(symbol: String, symbolType : Type){
     if(!smap.contains(symbol))
       smap(symbol) = this
   }

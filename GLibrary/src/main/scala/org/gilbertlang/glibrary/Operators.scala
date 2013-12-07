@@ -1,6 +1,6 @@
-package org.gilbertlang.mlibrary
+package org.gilbertlang.glibrary
 
-object MOperators {
+object Operators {
   sealed abstract class Operator
   
   sealed abstract class UnaryOperator extends Operator
@@ -8,8 +8,8 @@ object MOperators {
 
   case object TransposeOp extends UnaryOperator
   case object CellwiseTransposeOp extends CellwiseUnaryOperator
-  case object PrePlusOp extends UnaryOperator
-  case object PreMinusOp extends UnaryOperator
+  case object PrePlusOp extends CellwiseUnaryOperator
+  case object PreMinusOp extends CellwiseUnaryOperator
 
   sealed abstract class BinaryOperator extends Operator
   sealed abstract class CellwiseBinaryOperator extends BinaryOperator

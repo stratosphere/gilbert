@@ -1,19 +1,19 @@
-package org.gilbertlang.mtyper
+package org.gilbertlang
+package gtyper
 
-import org.gilbertlang.mparser.misc.PrettyPrinter
-import org.gilbertlang.mparser.MParser
 import scala.util.parsing.input.StreamReader
 import java.io.FileReader
-import org.gilbertlang.mtyper.misc.Printer
-import org.gilbertlang.mtyper.misc.VerbosePrinter
+import misc.Printer
+import misc.VerbosePrinter
+import gparser.GParser
 
 
 /**
  * @author ${user.name}
  */
-object App extends MParser {
+object App extends GParser {
   def main(args: Array[String]) {
-    val typer = new MTyper{}
+    val typer = new GTyper{}
 //    val input = """ A = load("inputfile",10,2);
 //    				B = binarize(A);
 //    				C = B' * B;

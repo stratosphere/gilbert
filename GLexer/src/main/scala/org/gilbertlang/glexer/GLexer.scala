@@ -1,17 +1,17 @@
-package org.gilbertlang.mlexer
+package org.gilbertlang.glexer
 
 import scala.util.parsing.input.Reader
-import org.gilbertlang.mlexer.token.MTokens
+import token.GTokens
 import scala.collection.mutable.ListBuffer
 import scala.util.parsing.input.CharArrayReader
 import scala.util.parsing.input.CharArrayReader.EofCh
-import org.gilbertlang.mlexer.token.MKeywords
+import token.GKeywords
 import scala.collection.immutable.HashSet
-import org.gilbertlang.mlexer.token.MDelimiters
+import token.GDelimiters
 
-trait MLexer extends MScanners with MTokens {
+trait GLexer extends GScanners with GTokens {
   
-  val keywords = HashSet[String]((for(value <- MKeywords.values) yield value.toString).toSeq:_*)
+  val keywords = HashSet[String]((for(value <- GKeywords.values) yield value.toString).toSeq:_*)
   
   def accept(token: Token) = { true }
   
@@ -72,10 +72,11 @@ trait MLexer extends MScanners with MTokens {
   }
   
   private lazy val delimiters = {
-    val delimiterValues = for(value <- MDelimiters.values) yield value.toString
+    val delimiterValues = for(value <- GDelimiters.values) yield value.toString
     val sortedDelimiterValues = delimiterValues.toList.sortWith(_.length >= _.length);
     
-    (sortedDelimiterValues map ( s => accept(s.toList) ^^ { _ => Keyword(s) } )).foldRight(failure("No such delimiter found"):Parser[Token])((delimiter,right) => delimiter | right);
+    (sortedDelimiterValues map ( s => accept(s.toList) ^^^ Keyword(s) )).
+    foldRight(failure("No such delimiter found"):Parser[Token])((delimiter,right) => delimiter | right);
   }
   
   private def delimiterParser:Parser[Token] = delimiters

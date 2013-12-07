@@ -1,36 +1,37 @@
-package org.gilbertlang.mtyper
+package org.gilbertlang
+package gtyper
 
-import org.gilbertlang.mparser.ast.MAst._
-import org.gilbertlang.mlibrary.MTypes._
-import org.gilbertlang.mlibrary.MTypes.Helper._
-import types.MTypedAst._
-import org.gilbertlang.mlibrary.MValues.ValueVar
-import org.gilbertlang.mlibrary.MOperators._
-import org.gilbertlang.mlibrary.MValues.MValue
-import org.gilbertlang.mlibrary.MValues.Helper._
-import org.gilbertlang.mlibrary.MValues.UniversalValue
-import org.gilbertlang.mlibrary.MValues.UndefinedValue
-import org.gilbertlang.mtyper.errors.TypingError
-import org.gilbertlang.mlibrary.MBuiltinSymbols
-import org.gilbertlang.mtyper.errors.TypeNotFoundError
-import org.gilbertlang.mlibrary.ConvenienceMethods._
-import org.gilbertlang.mlibrary.MValues.ReferenceValue
-import org.gilbertlang.mlibrary.MValues.IntValue
-import org.gilbertlang.mtyper.errors.TypeNotFoundError
-import org.gilbertlang.mtyper.errors.TypingError
-import org.gilbertlang.mtyper.errors.NotYetImplementedError
-import org.gilbertlang.mtyper.errors.ValueNotFoundError
+import gparser.ast.GAst._
+import glibrary.Types._
+import glibrary.Types.Helper._
+import types.GTypedAst._
+import glibrary.Values.ValueVar
+import glibrary.Operators._
+import glibrary.Values.Value
+import glibrary.Values.Helper._
+import glibrary.Values.UniversalValue
+import glibrary.Values.UndefinedValue
+import errors.TypingError
+import glibrary.GBuiltinSymbols
+import errors.TypeNotFoundError
+import glibrary.ConvenienceMethods._
+import glibrary.Values.ReferenceValue
+import glibrary.Values.IntValue
+import errors.TypeNotFoundError
+import errors.TypingError
+import errors.NotYetImplementedError
+import errors.ValueNotFoundError
 
-trait MTyper {
-  private val typeEnvironment = scala.collection.mutable.Map[String, MType]()
+trait GTyper {
+  private val typeEnvironment = scala.collection.mutable.Map[String, Type]()
   private val valueEnvironment = scala.collection.mutable.Map[String, TypedExpression]()
-  private val typeVarMapping = scala.collection.mutable.Map[MType, MType]()
-  private val valueVarMapping = scala.collection.mutable.Map[MValue, MValue]()
+  private val typeVarMapping = scala.collection.mutable.Map[Type, Type]()
+  private val valueVarMapping = scala.collection.mutable.Map[Value, Value]()
 
-  def resolveType(datatype: MType): MType = {
+  def resolveType(datatype: Type): Type = {
     datatype match {
       case _: AbstractTypeVar =>
-        var result: MType = datatype
+        var result: Type = datatype
 
         while (result != typeVarMapping.getOrElse(result, result)) {
           result = typeVarMapping(result)
@@ -48,12 +49,12 @@ trait MTyper {
     }
   }
 
-  def simplifyValue(value: MValue) = value
+  def simplifyValue(value: Value) = value
 
-  def resolveValue(value: MValue): MValue = {
+  def resolveValue(value: Value): Value = {
     val resolvedValue = value match {
       case _: ValueVar =>
-        var result: MValue = value
+        var result: Value = value
 
         while (result != valueVarMapping.getOrElse(result, result)) {
           result = valueVarMapping(result)
@@ -66,15 +67,15 @@ trait MTyper {
     simplifyValue(resolvedValue)
   }
 
-  def updateTypeVarMapping(typeVar: AbstractTypeVar, datatype: MType) {
+  def updateTypeVarMapping(typeVar: AbstractTypeVar, datatype: Type) {
     typeVarMapping.update(typeVar, datatype)
   }
 
-  def updateValueVarMapping(valueVar: ValueVar, value: MValue) {
+  def updateValueVarMapping(valueVar: ValueVar, value: Value) {
     valueVarMapping.update(valueVar, value)
   }
 
-  def resolvePolymorphicType(a: MType, b: MType): Option[(MType, Int)] = {
+  def resolvePolymorphicType(a: Type, b: Type): Option[(Type, Int)] = {
     a match {
       case PolymorphicType(types) =>
         types.zipWithIndex.toIterator.map {
@@ -85,7 +86,7 @@ trait MTyper {
             }
             case _ => None
           }
-        } find ({ x: Option[(MType, Int)] => x != None }) flatten
+        } find ({ x: Option[(Type, Int)] => x != None }) flatten
       case _ => unify(b, a) match {
         case Some(t) => Some(t, 0)
         case _ => None
@@ -93,7 +94,7 @@ trait MTyper {
     }
   }
 
-  def resolveValueReferences(datatype: MType, arguments: List[TypedExpression]): MType = {
+  def resolveValueReferences(datatype: Type, arguments: List[TypedExpression]): Type = {
     datatype match {
       case FunctionType(args, result) => FunctionType(args map { resolveValueReferences(_, arguments) },
         resolveValueReferences(result, arguments))
@@ -105,7 +106,7 @@ trait MTyper {
     }
   }
 
-  def evaluateExpression(expression: TypedExpression): MValue = {
+  def evaluateExpression(expression: TypedExpression): Value = {
     expression match {
       case TypedInteger(value) => IntValue(value)
       case TypedIdentifier(id,_) => {
@@ -118,14 +119,14 @@ trait MTyper {
     }
   }
 
-  def resolveValueReferences(value: MValue, arguments: List[TypedExpression]): MValue = {
+  def resolveValueReferences(value: Value, arguments: List[TypedExpression]): Value = {
     value match {
       case ReferenceValue(idx) => evaluateExpression(arguments(idx))
       case x => x
     }
   }
 
-  def widenTypes(a: MType, b: MType): (MType, MType) = {
+  def widenTypes(a: Type, b: Type): (Type, Type) = {
     (a.isWideableTo(b), b.isWideableTo(a)) match {
       case (true, _) => (b, b)
       case (_, true) => (a, a)
@@ -133,10 +134,10 @@ trait MTyper {
     }
   }
 
-  def specializeType(datatype: MType): MType = {
+  def specializeType(datatype: Type): Type = {
     val replacement = scala.collection.mutable.Map[AbstractTypeVar, AbstractTypeVar]()
     val replacementValues = scala.collection.mutable.Map[ValueVar, ValueVar]()
-    def helper(a: MType): MType = {
+    def helper(a: Type): Type = {
       a match {
         case UniversalType(x: NumericTypeVar) => replacement.getOrElseUpdate(x, newNumericTV())
         case UniversalType(x: TypeVar) => replacement.getOrElseUpdate(x, newTV())
@@ -147,7 +148,7 @@ trait MTyper {
         case x => x
       }
     }
-    def helperValue(a: MValue): MValue = {
+    def helperValue(a: Value): Value = {
       a match {
         case UniversalValue(x: ValueVar) => replacementValues.getOrElseUpdate(x, newVV())
         case x => x
@@ -156,9 +157,9 @@ trait MTyper {
     helper(datatype)
   }
 
-  def specializeValue(value: MValue): MValue = {
+  def specializeValue(value: Value): Value = {
     val replacement = scala.collection.mutable.Map[ValueVar, ValueVar]()
-    def helper(a: MValue): MValue = {
+    def helper(a: Value): Value = {
       a match {
         case UniversalValue(x: ValueVar) => replacement.getOrElseUpdate(x, newVV())
         case x => x
@@ -167,8 +168,8 @@ trait MTyper {
     helper(value)
   }
 
-  def freeVariables(datatype: MType): Set[MType] = {
-    def helper(a: MType): Set[MType] = {
+  def freeVariables(datatype: Type): Set[Type] = {
+    def helper(a: Type): Set[Type] = {
       a match {
         case UniversalType(x: AbstractTypeVar) => Set()
         case UniversalType(_) => throw new TypingError("Universal cannot be applied to a non type variable")
@@ -182,9 +183,9 @@ trait MTyper {
     helper(datatype)
   }
 
-  def generalizeType(datatype: MType): MType = {
+  def generalizeType(datatype: Type): Type = {
     val freeVars = typeEnvironment.values.flatMap({ freeVariables(_) }).toSet
-    def helper(datatype: MType): MType = {
+    def helper(datatype: Type): Type = {
       datatype match {
         case x @ UniversalType(_: AbstractTypeVar) => x
         case UniversalType(_) => throw new TypingError("Universal cannot be applied to a non type variable")
@@ -199,14 +200,14 @@ trait MTyper {
     helper(datatype)
   }
 
-  def generalizeValue(value: MValue): MValue = {
+  def generalizeValue(value: Value): Value = {
     value match {
       case x: ValueVar => UniversalValue(x)
       case x => x
     }
   }
 
-  def unifyValue(a: MValue, b: MValue): Option[MValue] = {
+  def unifyValue(a: Value, b: Value): Option[Value] = {
     val resolvedValueA = resolveValue(a)
     val resolvedValueB = resolveValue(b)
 
@@ -227,7 +228,7 @@ trait MTyper {
   }
 
   //TODO: type variable contained in other type as subexpression
-  def unify(a: MType, b: MType): Option[MType] = {
+  def unify(a: Type, b: Type): Option[Type] = {
     val resolvedTypeA = resolveType(a)
     val resolvedTypeB = resolveType(b)
 
@@ -305,8 +306,8 @@ trait MTyper {
     helper(expression)
   }
 
-  def updateEnvironment(identifier: String, datatype: MType) = typeEnvironment.update(identifier, datatype)
-  def updateEnvironment(identifier: ASTIdentifier, datatype: MType) = typeEnvironment.update(identifier.value, datatype)
+  def updateEnvironment(identifier: String, datatype: Type) = typeEnvironment.update(identifier, datatype)
+  def updateEnvironment(identifier: ASTIdentifier, datatype: Type) = typeEnvironment.update(identifier.value, datatype)
   
   def updateValueEnvironment(identifier: ASTIdentifier, expression: TypedExpression): Unit = {
     updateValueEnvironment(identifier.value,expression)
@@ -316,8 +317,8 @@ trait MTyper {
     valueEnvironment.update(identifier, expression)
   }
 
-  def getType(id: String): Option[MType] = {
-    MBuiltinSymbols.getType(id) match {
+  def getType(id: String): Option[Type] = {
+    GBuiltinSymbols.getType(id) match {
       case None => typeEnvironment.get(id) match {
         case Some(t) => Some(resolveType(t))
         case None => None
@@ -438,7 +439,7 @@ trait MTyper {
         FunctionType(DoubleType, DoubleType)))
   }
 
-  def typeBinaryOperator(operator: BinaryOperator): MType = operator match {
+  def typeBinaryOperator(operator: BinaryOperator): Type = operator match {
     case ExpOp =>
       val a = newVV()
       val t = newNumericTV()
@@ -508,7 +509,7 @@ trait MTyper {
   }
 
   def typeFunction(func: ASTFunction) = {
-    val typer = new MTyper {}
+    val typer = new GTyper {}
 
     func.values foreach { typer.updateEnvironment(_, newTV()) }
     func.parameters foreach { typer.updateEnvironment(_, newTV()) }

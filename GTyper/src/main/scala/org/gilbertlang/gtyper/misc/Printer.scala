@@ -1,4 +1,4 @@
-package org.gilbertlang.mtyper.misc
+package org.gilbertlang.gtyper.misc
 
 object Printer extends TypedASTPrinter {
   val spacing = " "

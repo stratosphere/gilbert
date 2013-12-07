@@ -1,10 +1,10 @@
-package org.gilbertlang.mparser
+package org.gilbertlang.gparser
 
 import scala.util.parsing.input.StreamReader
 import java.io.FileReader
 import misc.PrettyPrinter
 
-object App extends MParser {
+object App extends GParser {
   def main(args:Array[String]) = {
 	val inputURL = ClassLoader.getSystemResource("pageRank.m");
     var inputReader = StreamReader(new FileReader(inputURL.toURI().getPath()));
