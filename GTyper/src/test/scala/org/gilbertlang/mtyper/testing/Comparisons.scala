@@ -1,8 +1,8 @@
 package org.gilbertlang.mtyper.testing
 
-import org.gilbertlang.mtyper.types.MTypedAst._
-import org.gilbertlang.mlibrary.MTypes._
-import org.gilbertlang.mlibrary.MValues._
+import org.gilbertlang.gtyper.types.GTypedAst._
+import org.gilbertlang.glibrary.Types._
+import org.gilbertlang.glibrary.Values._
 import org.scalatest.Assertions
 
 trait Comparisons extends Assertions {
@@ -129,7 +129,7 @@ trait Comparisons extends Assertions {
     expectResult(expected.value)(actual.value)
   }
   
-  def checkType(expected: MType, actual: MType) {
+  def checkType(expected: Type, actual: Type) {
     (expected, actual) match {
       case (UniversalType(exp), UniversalType(act)) => {
         val resolvedExp = universalTypeMapping.getOrElseUpdate(exp, act)
@@ -155,7 +155,7 @@ trait Comparisons extends Assertions {
     }
   }
   
-  def checkValue(expected: MValue, actual: MValue) {
+  def checkValue(expected: Value, actual: Value) {
     (expected, actual) match{
       case (UniversalValue(exp), UniversalValue(act)) => {
         val resolvedExp = universalValueMapping.getOrElseUpdate(exp,act)

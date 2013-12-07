@@ -13,7 +13,7 @@ object App extends GParser {
   def main(args: Array[String]) {
     val inputReader = StreamReader(new InputStreamReader(ClassLoader.getSystemResourceAsStream("input.m")))
     val typer = new GTyper {}
-    val compiler = new MCompiler {}
+    val compiler = new GCompiler {}
 
     val ast = phrase(program)(inputReader)
 

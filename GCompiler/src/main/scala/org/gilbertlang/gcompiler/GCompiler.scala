@@ -10,7 +10,7 @@ import errors.TypeCompileError
 import org.gilbertlang.glibrary.GBuiltinSymbols
 import org.gilbertlang.gtyper.types.GTypedAst
 
-trait MCompiler {
+trait GCompiler {
   val assignments = scala.collection.mutable.Map[String, Executable]()
   val functions = scala.collection.mutable.Map[String, Executable]()
 
@@ -51,7 +51,7 @@ trait MCompiler {
   def compileIdentifier(identifier: TypedIdentifier) = {
     identifier match {
       case TypedIdentifier(id, _) =>
-        if (MBuiltinSymbols.isSymbol(id)) {
+        if (GBuiltinSymbols.isSymbol(id)) {
           compileBuiltInSymbol(id)
         } else {
           retrieveExecutable(id)
@@ -144,7 +144,7 @@ trait MCompiler {
         None
       case TypedNOP => None
       case TypedOutputResultStatement(stmt) =>
-        MTypedAst.getType(stmt) match {
+        GTypedAst.getType(stmt) match {
           case _: MatrixType =>
             compileStatement(stmt) match {
               case x: Matrix => Some(WriteMatrix(x))
@@ -169,7 +169,7 @@ trait MCompiler {
       case x: TypedExpression => compileExpression(x)
       case TypedNOP => EmptyExecutable
       case TypedOutputResultStatement(stmt) =>
-        MTypedAst.getType(stmt) match {
+        GTypedAst.getType(stmt) match {
           case _: MatrixType =>
             compileStatement(stmt) match {
               case x: Matrix => WriteMatrix(x)
