@@ -29,6 +29,8 @@ object local {
     val write = executable match {
       case (matrix: Matrix) => WriteMatrix(matrix)
       case (scalar: ScalarRef) => WriteScalarRef(scalar)
+      case string: StringRef => WriteString(string)
+      case function: FunctionRef => WriteFunction(function)
       case _ => executable
     }
 
@@ -43,6 +45,9 @@ object withSpark {
       case (matrix: Matrix) => WriteMatrix(matrix)
       //case (vector: Vector) => WriteVector(vector)
       case (scalar: ScalarRef) => WriteScalarRef(scalar)
+      case string: StringRef => WriteString(string)
+      case function: FunctionRef => WriteFunction(function)
+      case _ => executable
     }
 
     new SparkExecutor().run(write)

@@ -5,6 +5,8 @@ import com.esotericsoftware.kryo.io.{Input, Output}
 import org.apache.hadoop.io.{DataInputBuffer, DataOutputBuffer, Writable}
 import org.apache.spark.serializer.KryoRegistrator
 import org.apache.mahout.math.{MatrixWritable, VectorWritable, Matrix, DenseVector, Vector}
+import scala.reflect.ClassTag
+import scala.reflect.classTag
 
 /**
  *
@@ -21,7 +23,7 @@ class MahoutKryoRegistrator extends KryoRegistrator {
   }
 }
 
-class WritableKryoSerializer[V <% Writable, W <: Writable <% V : ClassManifest] extends Serializer[V] {
+class WritableKryoSerializer[V <% Writable, W <: Writable <% V : ClassTag] extends Serializer[V] {
 
   def write(kryo: Kryo, out: Output, v: V) = {
     val dob = new DataOutputBuffer()
@@ -38,7 +40,7 @@ class WritableKryoSerializer[V <% Writable, W <: Writable <% V : ClassManifest] 
     val data = new Array[Byte](len)
     in.read(data)
     dib.reset(data, len)
-    val w: W = classManifest[W].erasure.newInstance().asInstanceOf[W]
+    val w: W = classTag[W].runtimeClass.newInstance().asInstanceOf[W]
     w.readFields(dib)
     w
   }

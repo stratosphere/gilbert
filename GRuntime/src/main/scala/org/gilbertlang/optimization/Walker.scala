@@ -33,8 +33,16 @@ abstract class Walker {
 
     transformation match {
 
+      case x: Parameter => {
+        onArrival(x)
+        onLeave(x)
+      }
+
       case (transformation: LoadMatrix) => {
         onArrival(transformation)
+        visit(transformation.path)
+        visit(transformation.numRows)
+        visit(transformation.numColumns)
         onLeave(transformation)
       }
 
@@ -49,7 +57,7 @@ abstract class Walker {
         iteration -= 1
       }
 
-      case (transformation: IterationStatePlaceholder) => {
+      case IterationStatePlaceholder => {
         onArrival(transformation)
         onLeave(transformation)
       }
@@ -93,6 +101,13 @@ abstract class Walker {
         onLeave(transformation)
       }
 
+      case transformation: MatrixScalarTransformation => {
+        onArrival(transformation)
+        visit(transformation.matrix)
+        visit(transformation.scalar)
+        onLeave(transformation)
+      }
+
       case (transformation: VectorwiseMatrixTransformation) => {
         onArrival(transformation)
         visit(transformation.matrix)
@@ -101,11 +116,48 @@ abstract class Walker {
 
       case (transformation: ones) => {
         onArrival(transformation)
+        visit(transformation.numRows)
+        visit(transformation.numColumns)
         onLeave(transformation)
       }
 
       case (transformation: rand) => {
         onArrival(transformation)
+        visit(transformation.numRows)
+        visit(transformation.numColumns)
+        visit(transformation.mean)
+        visit(transformation.std)
+        onLeave(transformation)
+      }
+      
+      case transformation: spones => {
+        onArrival(transformation)
+        visit(transformation.matrix)
+        onLeave(transformation)
+      }
+      
+      case transformation: sum => {
+        onArrival(transformation)
+        visit(transformation.matrix)
+        visit(transformation.dimension)
+        onLeave(transformation)
+      }
+      
+      case transformation: sumRow => {
+        onArrival(transformation)
+        visit(transformation.matrix)
+        onLeave(transformation)
+      }
+      
+      case transformation: sumCol => {
+        onArrival(transformation)
+        visit(transformation.matrix)
+        onLeave(transformation)
+      }
+      
+      case transformation: diag => {
+        onArrival(transformation)
+        visit(transformation.matrix)
         onLeave(transformation)
       }
 
@@ -120,21 +172,57 @@ abstract class Walker {
         onLeave(transformation)
       }
 
+      case transformation: string => {
+        onArrival(transformation)
+        onLeave(transformation)
+      }
+
       case (transformation: WriteScalarRef) => {
         onArrival(transformation)
         visit(transformation.scalar)
         onLeave(transformation)
       }
-      
-      case transformation: CompoundExecutable => {
+
+      case transformation: WriteString => {
         onArrival(transformation)
-        transformation.executables foreach {visit(_)}
+        visit(transformation.string)
         onLeave(transformation)
       }
-      
-      case EmptyExecutable => {
-        onArrival(EmptyExecutable)
-        onLeave(EmptyExecutable)
+
+      case transformation: WriteFunction => {
+        onArrival(transformation)
+        visit(transformation.function)
+        onLeave(transformation)
+      }
+
+      case transformation: CompoundExecutable => {
+        onArrival(transformation)
+        transformation.executables foreach { visit(_) }
+        onLeave(transformation)
+      }
+
+      case transformation: ScalarScalarTransformation => {
+        onArrival(transformation)
+        visit(transformation.left)
+        visit(transformation.right)
+        onLeave(transformation)
+      }
+
+      case transformation: UnaryScalarTransformation => {
+        onArrival(transformation)
+        visit(transformation.scalar)
+        onLeave(transformation)
+      }
+
+      case fun: function => {
+        onArrival(fun)
+        visit(fun.body)
+        onLeave(fun)
+      }
+
+      case VoidExecutable => {
+        onArrival(VoidExecutable)
+        onLeave(VoidExecutable)
       }
     }
   }

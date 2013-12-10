@@ -9,6 +9,7 @@ trait TypePrinter extends ValuePrinter{
       case IntegerType => "Int"
       case DoubleType => "Double"
       case CharacterType => "Char"
+      case StringType => "String"
       case VoidType => "Void"
       case UndefinedType => "Undefined"
       case PolymorphicType(types) => {

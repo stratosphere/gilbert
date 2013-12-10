@@ -28,18 +28,18 @@ trait TypedASTPrinter extends TypePrinter {
     if (verbose) str(": ") + prettyString(datatype)
     else ""
   }
-  
-  private def nonVerboseType(datatype: Type): String ={
+
+  private def nonVerboseType(datatype: Type): String = {
     if (!verbose) str(": ") + prettyString(datatype)
     else ""
   }
-  
-  def print(program: TypedProgram){
-    println(prettyString(program,0))
+
+  def print(program: TypedProgram) {
+    println(prettyString(program, 0))
   }
-  
-  def print(expression: TypedExpression){
-    println(prettyString(expression,0))
+
+  def print(expression: TypedExpression) {
+    println(prettyString(expression, 0))
   }
 
   def prettyString(program: TypedProgram, indentation: Int): String = {
@@ -79,17 +79,18 @@ trait TypedASTPrinter extends TypePrinter {
       case TypedString(value) => str(value, indentation)
       case TypedUnaryExpression(exp, TransposeOp, _) => str("(", indentation) + prettyString(exp, 0) + str(")") +
         op2Str(TransposeOp)
-      case TypedUnaryExpression(exp, CellwiseTransposeOp, _) => str("(", indentation) + prettyString(exp, 0) + str(")") +
-        op2Str(TransposeOp)
-      case TypedUnaryExpression(exp,op,_) => str("(",indentation) + str(op2Str(op)) + prettyString(exp,0) + str(")")
-      case TypedBinaryExpression(a,op,b,_) => str("(",indentation) + prettyString(a,0) + str(" ") + op2Str(op) + 
-      str(" ") + prettyString(b,0) + str(")")
-      case TypedFunctionApplication(func,args,_) => {
-        prettyString(func,indentation) + str("(") + (args map { prettyString(_,0)} mkString(", ")) + str(")")
+      case TypedUnaryExpression(exp, CellwiseTransposeOp, _) => str("(", indentation) + prettyString(exp, 0) +
+        str(")") + op2Str(TransposeOp)
+      case TypedUnaryExpression(exp, op, _) => str("(", indentation) + str(op2Str(op)) + prettyString(exp, 0) + str(")")
+      case TypedBinaryExpression(a, op, b, _) => str("(", indentation) + prettyString(a, 0) + str(" ") + op2Str(op) +
+        str(" ") + prettyString(b, 0) + str(")")
+      case TypedFunctionApplication(func, args, _) => {
+        prettyString(func, indentation) + str("(") + (args map { prettyString(_, 0) } mkString (", ")) + str(")")
       }
-      case TypedFunctionReference(func, _) => str("@",indentation) + prettyString(func,0)
-      case TypedAnonymousFunction(params, body, _) => str("@(",indentation) + 
-      (params map { prettyString(_,0) } mkString(", ")) + str(")") + prettyString(body,0)
+      case TypedFunctionReference(func, _) => str("@", indentation) + prettyString(func, 0)
+      case TypedAnonymousFunction(params, body, closure, _) => str("@(", indentation) +
+        (params map { prettyString(_, 0) } mkString (", ")) + str(")") + str("(") + (closure mkString (", ")) +
+        str(")") + prettyString(body, 0)
     }) + verboseType(expression.datatype)
   }
 
@@ -97,7 +98,7 @@ trait TypedASTPrinter extends TypePrinter {
     str(identifier.value, indentation)
   }
 
-  def prettyString(statement: TypedStatement, indentation: Int ): String = {
+  def prettyString(statement: TypedStatement, indentation: Int): String = {
     statement match {
       case TypedOutputResultStatement(stmt: TypedStatementWithResult) => {
         val stmtStr = prettyString(stmt, indentation)

@@ -19,7 +19,7 @@ object GBuiltinSymbols extends BuiltinSymbols {
   val sumRow = Symbol("sumRow", sumRowType)
   val sumCol = Symbol("sumCol", sumColType)
 
-  def loadType = FunctionType((MatrixType(CharacterType, IntValue(1), uvv), IntegerType, IntegerType),
+  def loadType = FunctionType((StringType, IntegerType, IntegerType),
       MatrixType(DoubleType, ReferenceValue(1), ReferenceValue(2)))
 
   def binarizeType = {
@@ -35,7 +35,7 @@ object GBuiltinSymbols extends BuiltinSymbols {
     val numericType = untv
     PolymorphicType(List(
       FunctionType(MatrixType(t, a, b), t),
-      FunctionType(numericType, numericType)))
+      FunctionType((numericType, numericType), numericType)))
   }
   
   def sponesType = {
@@ -102,7 +102,7 @@ object GBuiltinSymbols extends BuiltinSymbols {
   def writeType = {
     val (t,a,b) = newUTVV()
     PolymorphicType(List(
-        FunctionType((MatrixType(t,a,b),MatrixType(CharacterType,IntValue(1),newVV())),VoidType)))
+        FunctionType((MatrixType(t,a,b),StringType),VoidType)))
   }
 
 }

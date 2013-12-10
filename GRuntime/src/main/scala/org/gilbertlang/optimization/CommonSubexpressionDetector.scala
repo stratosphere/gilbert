@@ -23,7 +23,7 @@ import org.gilbertlang.Executable
 //TODO needs to handle iteration state!
 class CommonSubexpressionDetector extends Walker {
 
-  private var subtreesByHash = Map[Int, Seq[Int]]()
+  private var subtreesByHash = Map[Int, List[Int]]()
 
   def find(executable: Executable) = {
     visit(executable)
@@ -32,10 +32,13 @@ class CommonSubexpressionDetector extends Walker {
 
     for ((hash, orders) <- subtreesByHash) {
       if (orders.size > 1) {
-        val minOrder = orders.reduce(math.min)
-        val toEliminate = orders.filter(_ != minOrder)
+//        val minOrder = orders.reduce(math.min)
+//        val toEliminate = orders.filter(_ != minOrder)
+        val order = orders.head
+        val toEliminate = orders.filter(_ != order)
 
-        toEliminate.map((_ -> minOrder)).foreach(repeatedExpressions += _)
+        toEliminate.map((_ -> order)).foreach(repeatedExpressions += _)
+//        toEliminate.map((_ -> minOrder)).foreach(repeatedExpressions += _)
         //eliminatedExpressions.foreach(repeatedExpressions += (_ -> minOrder))
       }
 
@@ -51,7 +54,7 @@ class CommonSubexpressionDetector extends Walker {
 
     println("\t" + transformation.id + ", " + currentIteration() + " " + transformation)
 
-    val orders = subtreesByHash.getOrElse(hash, Seq()) ++ Seq(transformation.id)
+    val orders = subtreesByHash.getOrElse(hash, List()) ++ List(transformation.id)
     subtreesByHash += ((hash,orders))
   }
 }

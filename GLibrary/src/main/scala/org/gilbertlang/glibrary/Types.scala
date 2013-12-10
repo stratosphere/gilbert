@@ -32,6 +32,7 @@ object Types {
       Type.this == other || (wideableTypes.getOrElse(Type.this, List()) contains (other))
   }
 
+  case object StringType extends Type
   sealed trait NumericType extends Type
   case object IntegerType extends NumericType
   case object DoubleType extends NumericType

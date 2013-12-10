@@ -18,26 +18,27 @@
 
 package org.gilbertlang
 
-object load {
-  def apply(path: String, numRows: Int, numColumns: Int) = LoadMatrix(path, numRows, numColumns)
-}
-
-object fixpoint {
-  def apply(initialState: Matrix, updateFunction: Matrix => Matrix) = {
-    new FixpointIteration(initialState, updateFunction)
+object GilbertFunctions {
+  object load {
+    def apply(path: StringRef, numRows: ScalarRef, numColumns: ScalarRef) = LoadMatrix(path, numRows, numColumns)
   }
-}
 
+  object fixpoint {
+    def apply(initialState: Matrix, updateFunction: Matrix => Matrix) = {
+      new FixpointIteration(initialState, updateFunction)
+    }
+  }
 
-object binarize {
-  def apply(matrix: Matrix) = matrix.binarize()
-}
+  object binarize {
+    def apply(matrix: Matrix) = matrix.binarize()
+  }
 
-object max {
-  def apply(matrix: Matrix) = matrix.max()
-}
+  object max {
+    def apply(matrix: Matrix) = matrix.max()
+  }
 
-object norm2 {
-  def apply(matrix: Matrix) = matrix.norm(2);
+  object norm2 {
+    def apply(matrix: Matrix) = matrix.norm(2);
+  }
 }
 

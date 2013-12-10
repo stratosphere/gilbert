@@ -27,7 +27,7 @@ object App extends GParser {
     parseResult match{
       case Success(program,rest) => 
         val typedProgram = typer.typeProgram(program)
-        Printer.print(typedProgram)
+        VerbosePrinter.print(typedProgram)
       case _ => println("Could not type program")
     }
     

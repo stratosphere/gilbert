@@ -18,6 +18,8 @@
 
 package org.gilbertlang
 
+import GilbertFunctions._
+
 object Examples {
 
   def cooccurrences = {

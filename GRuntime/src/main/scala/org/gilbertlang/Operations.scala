@@ -18,34 +18,28 @@
 
 package org.gilbertlang
 
-object ScalarOperation extends Enumeration {
-  type ScalarOperation = Value
-  val Binarize = Value
-  val Negate = Value
-}
+sealed trait CellwiseOperation
+sealed trait ScalarsOperation extends CellwiseOperation
+sealed trait ScalarMatrixOperation extends CellwiseOperation
 
-object ScalarsOperation extends Enumeration {
-  type ScalarsOperation = Value
-  //TODO does norm2 belong here?
-  val Addition, Subtraction, Multiplication, Division, Maximum, Norm2, Exponentiation = Value
-}
+sealed trait BasicArithmeticOperation extends ScalarsOperation with ScalarMatrixOperation
+case object Addition extends BasicArithmeticOperation
+case object Subtraction extends BasicArithmeticOperation
+case object Multiplication extends BasicArithmeticOperation
+case object Division extends BasicArithmeticOperation
 
-object UnaryScalarOperation extends Enumeration{
-  type UnaryScalarOperation = Value
-  val UnaryMinus = Value
-}
+sealed trait MinMax extends ScalarsOperation with VectorwiseOperation with AggregateMatrixOperation
+case object Maximum extends MinMax
+case object Minimum extends MinMax
 
-object CellwiseOperation extends Enumeration {
-  type CellwiseOperation = Value
-  val Addition, Subtraction, Multiplication, Division = Value
-}
+sealed trait UnaryScalarOperation
+case object Minus extends UnaryScalarOperation
+case object Binarize extends UnaryScalarOperation
 
-object VectorwiseOperation extends Enumeration {
-  type VectorwiseOperation = Value
-  val Max, Min, Average, Norm2Squared, Norm2, NormalizeL1 = Value
-}
+sealed trait VectorwiseOperation
+case object NormalizeL1 extends VectorwiseOperation
 
-object MatrixwiseOperation extends Enumeration {
-  type MatrixwiseOperation = Value
-  val RowSums = Value
-}
+sealed trait AggregateMatrixOperation
+
+sealed trait NormOperation extends AggregateMatrixOperation with VectorwiseOperation 
+case object Norm2 extends NormOperation

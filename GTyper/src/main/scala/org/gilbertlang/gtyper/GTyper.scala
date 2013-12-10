@@ -37,8 +37,8 @@ trait GTyper {
           result = typeVarMapping(result)
         }
 
-        result match{
-          case _:AbstractTypeVar => result
+        result match {
+          case _: AbstractTypeVar => result
           case _ => resolveType(result)
         }
       case MatrixType(elementType, rowValue, colValue) => MatrixType(resolveType(elementType),
@@ -80,8 +80,8 @@ trait GTyper {
       case PolymorphicType(types) =>
         types.zipWithIndex.toIterator.map {
           case (signature, index) => unify(specializeType(generalizeType(b)), signature) match {
-            case Some(_) => unify(b,signature) match{
-              case Some(t) => Some(t,index)
+            case Some(_) => unify(b, signature) match {
+              case Some(t) => Some(t, index)
               case _ => None
             }
             case _ => None
@@ -109,8 +109,8 @@ trait GTyper {
   def evaluateExpression(expression: TypedExpression): Value = {
     expression match {
       case TypedInteger(value) => IntValue(value)
-      case TypedIdentifier(id,_) => {
-        getValue(id) match{
+      case TypedIdentifier(id, _) => {
+        getValue(id) match {
           case Some(t) => evaluateExpression(t)
           case _ => throw new ValueNotFoundError("identifier " + id + " has no value assigned")
         }
@@ -168,7 +168,31 @@ trait GTyper {
     helper(value)
   }
 
-  def freeVariables(datatype: Type): Set[Type] = {
+  def freeVariables(expression: ASTExpression): Set[String] = {
+    expression match {
+      case x: ASTIdentifier => freeVariables(x)
+      case _: ASTInteger | _: ASTFloatingPoint | _: ASTString => Set()
+      case ASTUnaryExpression(exp, _) => freeVariables(exp)
+      case ASTBinaryExpression(a, op, b) => freeVariables(a) ++ freeVariables(b)
+      case ASTFunctionReference(id) => freeVariables(id)
+      case ASTAnonymousFunction(params, body) => freeVariables(body) --
+        (params map { case ASTIdentifier(id) => id }).toSet
+      case ASTFunctionApplication(func, args) => freeVariables(func) ++ (args flatMap { freeVariables(_) }).toSet
+      case ASTMatrix(rows) => (rows flatMap { freeVariables(_) }).toSet
+      case ASTMatrixRow(exps) => (exps flatMap { freeVariables(_) }).toSet
+    }
+  }
+
+  def freeVariables(identifier: ASTIdentifier): Set[String] = {
+    identifier match {
+      case ASTIdentifier(id) => {
+        if (GBuiltinSymbols.isSymbol(id)) Set()
+        else Set(id)
+      }
+    }
+  }
+
+  def freeTypeVariables(datatype: Type): Set[Type] = {
     def helper(a: Type): Set[Type] = {
       a match {
         case UniversalType(x: AbstractTypeVar) => Set()
@@ -184,7 +208,7 @@ trait GTyper {
   }
 
   def generalizeType(datatype: Type): Type = {
-    val freeVars = typeEnvironment.values.flatMap({ freeVariables(_) }).toSet
+    val freeVars = typeEnvironment.values.flatMap({ freeTypeVariables(_) }).toSet
     def helper(datatype: Type): Type = {
       datatype match {
         case x @ UniversalType(_: AbstractTypeVar) => x
@@ -221,7 +245,7 @@ trait GTyper {
           updateValueVarMapping(y, x)
           Some(x)
         case (UndefinedValue, _) => Some(UndefinedValue)
-        case (_ , UndefinedValue) => Some(UndefinedValue)
+        case (_, UndefinedValue) => Some(UndefinedValue)
         case _ => None
       }
     }
@@ -308,12 +332,12 @@ trait GTyper {
 
   def updateEnvironment(identifier: String, datatype: Type) = typeEnvironment.update(identifier, datatype)
   def updateEnvironment(identifier: ASTIdentifier, datatype: Type) = typeEnvironment.update(identifier.value, datatype)
-  
+
   def updateValueEnvironment(identifier: ASTIdentifier, expression: TypedExpression): Unit = {
-    updateValueEnvironment(identifier.value,expression)
+    updateValueEnvironment(identifier.value, expression)
   }
-  
-  def updateValueEnvironment(identifier: String, expression: TypedExpression): Unit ={ 
+
+  def updateValueEnvironment(identifier: String, expression: TypedExpression): Unit = {
     valueEnvironment.update(identifier, expression)
   }
 
@@ -326,8 +350,8 @@ trait GTyper {
       case Some(t) => Some(resolveType(t))
     }
   }
-  
-  def getValue(id: String): Option[TypedExpression] ={
+
+  def getValue(id: String): Option[TypedExpression] = {
     valueEnvironment.get(id)
   }
 
@@ -337,7 +361,7 @@ trait GTyper {
     case ASTProgram(stmtFuncList) => TypedProgram(stmtFuncList map {
       case stmt: ASTStatement => typeStmt(stmt)
       case func: ASTFunction => typeFunction(func)
-      case typeAnnotation: ASTTypeAnnotation => 
+      case typeAnnotation: ASTTypeAnnotation =>
         throw new NotYetImplementedError("Type annotations are not yet supported")
     })
   }
@@ -351,7 +375,7 @@ trait GTyper {
   def typeStmtWithResult(stmt: ASTStatementWithResult): TypedStatementWithResult = stmt match {
     case ASTAssignment(lhs, rhs) =>
       val typedRHS = typeExpression(rhs)
-      updateValueEnvironment(lhs,typedRHS)
+      updateValueEnvironment(lhs, typedRHS)
       updateEnvironment(lhs, extractType(typedRHS))
       TypedAssignment(typeIdentifier(lhs), typedRHS)
     case exp: ASTExpression => typeExpression(exp)
@@ -392,15 +416,16 @@ trait GTyper {
         { extractType(_) }, newTV()))
 
       unificationResult match {
-        case Some((FunctionType(_, resultType), _)) =>
-          TypedFunctionApplication(typedFunc, typedArguments, resolveValueReferences(resultType, typedArguments))
-        case _ => throw new TypeNotFoundError("Function application could not be typed")
+        case Some((appliedFunType @ FunctionType(_, resultType), _)) =>
+          TypedFunctionApplication(TypedIdentifier(typedFunc.value,appliedFunType), typedArguments, resolveValueReferences(resultType, typedArguments))
+        case _ => throw new TypeNotFoundError("Function application could not be typed: " + exp)
       }
     }
     case ASTAnonymousFunction(parameters, body) => {
       val oldMappings = parameters map { case ASTIdentifier(id) => (id, typeEnvironment.get(id)) }
       parameters foreach { case ASTIdentifier(id) => updateEnvironment(id, newTV()) }
 
+      val closure = (freeVariables(body) -- (parameters map { case ASTIdentifier(id) => id }).toSet).toList
       val typedBody = typeExpression(body)
 
       val typedParameters = parameters map {
@@ -411,7 +436,13 @@ trait GTyper {
       }
 
       val functionType = FunctionType(typedParameters map { extractType(_) }, extractType(typedBody))
-      TypedAnonymousFunction(typedParameters, typedBody, functionType)
+
+      oldMappings foreach {
+        case (id, Some(datatype)) => updateEnvironment(id, datatype)
+        case (_, None) => ;
+      }
+
+      TypedAnonymousFunction(typedParameters, typedBody, closure, functionType)
     }
     case ASTFunctionReference(function) => {
       val typedIdentifier = typeIdentifier(function)
@@ -475,10 +506,10 @@ trait GTyper {
     case CellwiseMultOp | CellwiseDivOp =>
       val (t, a, b) = newNTVV()
       val (t1, a1, b1) = newNTVV()
-      val (t2,a2,b2) = newNTVV()
+      val (t2, a2, b2) = newNTVV()
       PolymorphicType(List(FunctionType((MatrixType(t, a, b), MatrixType(t, a, b)), MatrixType(t, a, b)),
         FunctionType((MatrixType(t1, a1, b1), t1), MatrixType(t1, a1, b1)),
-        FunctionType((t2,MatrixType(t2,a2,b2)), MatrixType(t2,a2,b2)),
+        FunctionType((t2, MatrixType(t2, a2, b2)), MatrixType(t2, a2, b2)),
         FunctionType((IntegerType, IntegerType), IntegerType),
         FunctionType((DoubleType, DoubleType), DoubleType)))
     case LogicalOrOp | LogicalAndOp =>

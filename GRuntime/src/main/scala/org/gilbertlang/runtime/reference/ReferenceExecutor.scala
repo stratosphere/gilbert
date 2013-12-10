@@ -19,13 +19,20 @@
 package org.gilbertlang.runtime.reference
 
 import org.gilbertlang._
-import org.apache.mahout.math.{DenseMatrix, SparseRowMatrix}
+import org.apache.mahout.math.{ DenseMatrix, SparseRowMatrix }
 import runtime.VectorFunctions
 import org.apache.mahout.math.random.Normal
 import optimization.CommonSubexpressionDetector
-import shell.{local, printPlan}
+import shell.{ local, printPlan }
+import org.gilbertlang.VoidExecutable
+import GilbertFunctions._
 import scala.io.Source
-import org.gilbertlang.EmptyExecutable
+import org.apache.mahout.math.SparseMatrix
+import org.gilbertlang.runtime.CellwiseFunctions
+import org.gilbertlang.shell.PlanPrinter
+import org.gilbertlang.error.ExecutionRuntimeError
+import org.apache.mahout.math.DiagonalMatrix
+import org.gilbertlang.optimization.VolatileExpressionDetector
 
 object ReferenceExecutorRunner {
 
@@ -45,7 +52,10 @@ class ReferenceExecutor extends Executor {
 
   def run(executable: Executable) = {
 
+    //TODO: Fix subexpression detector
     setRedirects(new CommonSubexpressionDetector().find(executable))
+    val volatiles = VolatileExpressionDetector.find(executable)
+    setVolatileExpressions(volatiles)
 
     printPlan(executable)
 
@@ -60,31 +70,36 @@ class ReferenceExecutor extends Executor {
     executable match {
       case (compound: CompoundExecutable) =>
         compound.executables foreach { execute(_) }
-      case EmptyExecutable => ()
+      case VoidExecutable => ()
       case (transformation: LoadMatrix) => {
 
-        handle[LoadMatrix, Unit](transformation,
-            { _ => },
-            { (transformation, _) => {
+        handle[LoadMatrix, (String, Int, Int)](transformation,
+          { transformation =>
+            (evaluate[String](transformation.path), evaluate[Double](transformation.numRows).toInt,
+              evaluate[Double](transformation.numColumns).toInt)
+          },
+          {
+            case (transformation, (path, numRows, numColumns)) => {
 
-              val matrix = new SparseRowMatrix(transformation.numRows, transformation.numColumns)
+              val matrix = new SparseRowMatrix(numRows, numColumns)
 
-              for (line <- Source.fromFile(transformation.path).getLines()) {
+              for (line <- Source.fromFile(path).getLines()) {
                 val fields = line.split(" ")
                 matrix.setQuick(fields(0).toInt - 1, fields(1).toInt - 1, fields(2).toDouble)
               }
 
               matrix
-            }})
+            }
+          })
       }
 
       case (transformation: FixpointIteration) => {
 
         iterationState = handle[FixpointIteration, MahoutMatrix](transformation,
-            { transformation => evaluate[MahoutMatrix](transformation.initialState) },
-            { (_, initialVector) => initialVector }).asInstanceOf[MahoutMatrix]
+          { transformation => evaluate[MahoutMatrix](transformation.initialState) },
+          { (_, initialVector) => initialVector }).asInstanceOf[MahoutMatrix]
 
-        for (_ <- 1 to 10) {
+        for (counter <- 1 to 10) {
           iterationState = handle[FixpointIteration, MahoutMatrix](transformation,
             { transformation => evaluate[MahoutMatrix](transformation.updatePlan) },
             { (_, vector) => vector }).asInstanceOf[MahoutMatrix]
@@ -93,148 +108,322 @@ class ReferenceExecutor extends Executor {
         iterationState
       }
 
-      case (transformation: IterationStatePlaceholder) => { iterationState }
+      case IterationStatePlaceholder => { 
+        iterationState 
+        }
 
       case (transformation: CellwiseMatrixTransformation) => {
 
         handle[CellwiseMatrixTransformation, MahoutMatrix](transformation,
-            { transformation => evaluate[MahoutMatrix](transformation.matrix) },
-            { (transformation, matrix) => {
+          { transformation => evaluate[MahoutMatrix](transformation.matrix) },
+          { (transformation, matrix) =>
+            {
               transformation.operation match {
-                case ScalarOperation.Binarize => { matrix.assign(VectorFunctions.binarize)}
-                case ScalarOperation.Negate => {matrix.times(-1)}
+                case Binarize => { matrix.assign(VectorFunctions.binarize) }
+                case Minus => { matrix.times(-1) }
               }
-            }})
+            }
+          })
+      }
+
+      case transformation: CellwiseMatrixMatrixTransformation => {
+        handle[CellwiseMatrixMatrixTransformation, (MahoutMatrix, MahoutMatrix)](transformation,
+          { transformation =>
+            (evaluate[MahoutMatrix](transformation.left),
+              evaluate[MahoutMatrix](transformation.right))
+          },
+          {
+            case (transformation, (left, right)) => {
+              transformation.operation match {
+                case Addition => left.plus(right)
+                case Subtraction => left.minus(right)
+                case Multiplication => left.assign(right, CellwiseFunctions.times)
+                case Division => left.assign(right, CellwiseFunctions.divide)
+                case Maximum => left.assign(right, CellwiseFunctions.max)
+                case Minimum => left.assign(right, CellwiseFunctions.min)
+              }
+            }
+          })
       }
 
       case (transformation: Transpose) => {
 
         handle[Transpose, MahoutMatrix](transformation,
-            { transformation => evaluate[MahoutMatrix](transformation.matrix) },
-            { (transformation, matrix) => matrix.transpose() })
-      }
-      
-      case transformation:MatrixExponentiation => {
-        handle[MatrixExponentiation,(MahoutMatrix, Integer)](transformation,
-            { transformation => (evaluate[MahoutMatrix](transformation.matrix),evaluate[Integer](transformation.exponent)) },
-            { case (_, (matrix, exponent)) => 
-              var result = matrix
-              (1 until exponent) foreach{ _ => result = result.times(matrix)}
-              result})
+          { transformation => evaluate[MahoutMatrix](transformation.matrix) },
+          { (transformation, matrix) => matrix.transpose() })
       }
 
       case (transformation: MatrixMult) => {
 
         handle[MatrixMult, (MahoutMatrix, MahoutMatrix)](transformation,
-            { transformation => {
+          { transformation =>
+            {
               (evaluate[MahoutMatrix](transformation.left), evaluate[MahoutMatrix](transformation.right))
-            }},
-            { case (_, (leftMatrix, rightMatrix)) => leftMatrix.times(rightMatrix) })
+            }
+          },
+          { case (_, (leftMatrix, rightMatrix)) => {
+            leftMatrix.times(rightMatrix) 
+          }}
+          )
+          
       }
 
       case (transformation: AggregateMatrixTransformation) => {
 
         handle[AggregateMatrixTransformation, MahoutMatrix](transformation,
-            { transformation => evaluate[MahoutMatrix](transformation.matrix) },
-            { (transformation, matrix) => {
+          { transformation => evaluate[MahoutMatrix](transformation.matrix) },
+          { (transformation, matrix) =>
+            {
               transformation.operation match {
-                case ScalarsOperation.Maximum => { matrix.aggregate(VectorFunctions.max, VectorFunctions.identity) }
-                case ScalarsOperation.Norm2 => {
+                case Maximum => { matrix.aggregate(VectorFunctions.max, VectorFunctions.identity) }
+                case Minimum => { matrix.aggregate(VectorFunctions.min, VectorFunctions.identity) }
+                case Norm2 => {
                   val sumOfSquaredEntries = matrix.aggregateRows(VectorFunctions.lengthSquared).zSum()
                   math.sqrt(sumOfSquaredEntries)
                 }
               }
-            }})
+            }
+          })
       }
 
       case (transformation: ScalarMatrixTransformation) => {
 
         handle[ScalarMatrixTransformation, (MahoutMatrix, Double)](transformation,
-            { transformation => {
+          { transformation =>
+            {
               (evaluate[MahoutMatrix](transformation.matrix), (evaluate[Double](transformation.scalar)))
-            }},
-            { case (transformation, (matrix, scalar)) => {
+            }
+          },
+          {
+            case (transformation, (matrix, scalar)) => {
               transformation.operation match {
-                case (ScalarsOperation.Division) => { matrix.divide(scalar) }
-                case (ScalarsOperation.Multiplication) => { matrix.times(scalar) }
+                case Division => {
+                  val dividend = new SparseMatrix(matrix.rowSize(), matrix.columnSize()).assign(scalar)
+                  dividend.assign(matrix, CellwiseFunctions.divide)
+                }
+                case Multiplication => { matrix.times(scalar) }
+                case Addition => matrix.plus(scalar)
+                case Subtraction => {
+                  val minuend = new SparseMatrix(matrix.rowSize(), matrix.columnSize()).assign(scalar)
+                  minuend.minus(matrix)
+                }
               }
-            }})
+            }
+          })
+      }
+
+      case transformation: MatrixScalarTransformation => {
+        handle[MatrixScalarTransformation, (MahoutMatrix, Double)](transformation,
+          { transformation =>
+            {
+              (evaluate[MahoutMatrix](transformation.matrix),
+                evaluate[Double](transformation.scalar))
+            }
+          },
+          {
+            case (transformation, (matrix, scalar)) => {
+              transformation.operation match {
+                case Addition => matrix.plus(scalar)
+                case Subtraction => matrix.plus(-scalar)
+                case Multiplication => matrix.times(scalar)
+                case Division => matrix.divide(scalar)
+              }
+            }
+          })
       }
 
       case (transformation: VectorwiseMatrixTransformation) => {
 
         handle[VectorwiseMatrixTransformation, MahoutMatrix](transformation,
-            { transformation => evaluate[MahoutMatrix](transformation.matrix) },
-            { (transformation, matrix) => {
+          { transformation => evaluate[MahoutMatrix](transformation.matrix) },
+          { (transformation, matrix) =>
+            {
               transformation.operation match {
-                case (VectorwiseOperation.NormalizeL1) => {
+                case NormalizeL1 => {
                   for (index <- 0 until matrix.numRows()) {
                     matrix.viewRow(index).normalize(1)
                   }
+                  matrix
                 }
-                matrix
+                case Maximum => {
+                  for (index <- 0 until matrix.numRows()) {
+                    matrix.viewRow(index).maxValue()
+                  }
+                  matrix
+                }
+                case Minimum => {
+                  for (index <- 0 until matrix.numRows()) {
+                    matrix.viewRow(index).minValue()
+                  }
+                  matrix
+                }
+                case Norm2 => {
+                  for (index <- 0 until matrix.numRows()) {
+                    matrix.viewRow(index).norm(2)
+                  }
+                  matrix
+                }
               }
-            }})
+            }
+          })
       }
 
       case (transformation: ones) => {
 
-        handle[ones, Unit](transformation,
-            { _ => },
-            { (transformation, _) => { new DenseMatrix(transformation.rows, transformation.columns).assign(1) }})
+        handle[ones, (Int, Int)](transformation,
+          { transformation => (evaluate[Double](transformation.numRows).toInt, 
+              evaluate[Double](transformation.numColumns).toInt) },
+          { case (transformation, (numRows, numColumns)) => { new DenseMatrix(numRows, numColumns).assign(1) } })
       }
 
       case (transformation: rand) => {
 
-        handle[rand, Unit](transformation,
-            { _ => },
-            { (transformation, _) => {
-              new DenseMatrix(transformation.rows, transformation.columns)
-                 .assign(new Normal(transformation.mean, transformation.std))
+        handle[rand, (Int, Int, Double, Double)](transformation,
+          { transformation =>
+            (evaluate[Double](transformation.numRows).toInt, evaluate[Double](transformation.numColumns).toInt,
+              evaluate[Double](transformation.mean), evaluate[Double](transformation.std))
+          },
+          {
+            case (transformation, (numRows, numColumns, mean, std)) => {
+              new DenseMatrix(numRows, numColumns)
+                .assign(new Normal(mean, std))
+            }
+          })
+      }
+      
+      case transformation: spones =>{
+        handle[spones, MahoutMatrix](transformation,
+            { transformation => evaluate[MahoutMatrix](transformation.matrix)} ,
+            { (_, matrix) => matrix.assign(CellwiseFunctions.binarize)})
+      }
+      
+      case transformation: sum => {
+        handle[sum, (MahoutMatrix, Int)](transformation,
+            { transformation => (evaluate[MahoutMatrix](transformation.matrix),
+                evaluate[Double](transformation.dimension).toInt)},
+            { case (_, (matrix, 2)) => {
+              new DenseMatrix(matrix.numRows(),1).assignColumn(
+                  0,matrix.aggregateRows(VectorFunctions.sum))
+              }
+            case (_, (matrix, 1)) => {
+              new DenseMatrix(1,matrix.numCols()).assignRow(0,
+                  matrix.aggregateColumns(VectorFunctions.sum))
+            }
+            })
+      }
+      
+      case transformation: sumRow => {
+        handle[sumRow, MahoutMatrix](transformation,
+            { transformation => evaluate[MahoutMatrix](transformation.matrix)},
+            { (_, matrix) => {
+              new DenseMatrix(matrix.numRows(),1).assignColumn(0,
+                  matrix.aggregateRows(VectorFunctions.sum))
+            } 
+            })
+      }
+      
+      case transformation: sumCol => {
+        handle[sumCol, MahoutMatrix](transformation,
+            {transformation => evaluate[MahoutMatrix](transformation.matrix)},
+            { (_, matrix) => {
+              new DenseMatrix(1, matrix.numCols()).assignRow(0,
+                  matrix.aggregateColumns(VectorFunctions.sum))
+            }})
+      }
+      
+      
+      case transformation: diag => {
+        handle[diag, MahoutMatrix](transformation,
+            {transformation => evaluate[MahoutMatrix](transformation.matrix)},
+            { (_, matrix) => {
+              (matrix.numRows, matrix.numCols) match {
+                case (1, x) => {
+                  new DiagonalMatrix(matrix.viewRow(0))
+                }
+                case (x,1) => {
+                  new DiagonalMatrix(matrix.viewColumn(0))
+                }
+                case (x,y) => {
+                  val minimum = math.min(x,y)
+                  
+                  new DenseMatrix(minimum,1).assignColumn(0,matrix.viewDiagonal())
+                }
+              }
             }})
       }
 
       case (transformation: WriteMatrix) => {
 
         handle[WriteMatrix, MahoutMatrix](transformation,
-            { transformation => evaluate[MahoutMatrix](transformation.matrix) },
-            { (_, matrix) => println(matrix) })
+          { transformation => evaluate[MahoutMatrix](transformation.matrix) },
+          { (_, matrix) => println(matrix) })
       }
+      
+      case transformation: WriteString => {
+        handle[WriteString, String](transformation,
+            { transformation => evaluate[String](transformation.string)},
+            { (_, string) => println(string)})
+      }
+      
+      case transformation: WriteFunction => {
+        handle[WriteFunction, Unit](transformation,
+            {_ => },
+            { (transformation, _) => PlanPrinter.print(transformation.function) })
+      }
+      
 
       case (transformation: scalar) => {
 
         handle[scalar, Unit](transformation,
-            { _ => },
-            { (transformation, _) => transformation.value })
+          { _ => },
+          { (transformation, _) => transformation.value })
+      }
+
+      case transformation: string => {
+        handle[string, Unit](transformation,
+          { _ => },
+          { (transformation, _) => transformation.value })
       }
 
       case (transformation: WriteScalarRef) => {
 
         handle[WriteScalarRef, Double](transformation,
-            { transformation => evaluate[Double](transformation.scalar) },
-            { (_, scalar) => println(scalar) })
+          { transformation => evaluate[Double](transformation.scalar) },
+          { (_, scalar) => println(scalar) })
+      }
+
+      case transformation: UnaryScalarTransformation =>
+        handle[UnaryScalarTransformation, Double](transformation,
+          { transformation => evaluate[Double](transformation.scalar) },
+          { (transformation, value) =>
+            transformation.operation match {
+              case Minus => -value
+              case Binarize => CellwiseFunctions.binarize(value)
+            }
+          })
+      case transformation: ScalarScalarTransformation => {
+        handle[ScalarScalarTransformation, (Double, Double)](transformation,
+          { transformation => (evaluate[Double](transformation.left), evaluate[Double](transformation.right)) },
+          {
+            case (transformation, (left, right)) => transformation.operation match {
+              case Addition => left + right
+              case Subtraction => left - right
+              case Division => left / right
+              case Multiplication => left * right
+              case Maximum => math.max(left, right)
+              case Minimum => math.min(left, right)
+            }
+          })
       }
       
-      case transformation: ScalarTransformation => 
-        handle[ScalarTransformation,Double](transformation,
-            { transformation => evaluate[Double](transformation.scalar) },
-            { (transformation, value) => transformation.operation match{
-              case UnaryScalarOperation.UnaryMinus => -value 
-            }})
-      case transformation: ScalarScalarTransformation =>
-        handle[ScalarScalarTransformation,(Double,Double)](transformation,
-            { transformation => (evaluate[Double](transformation.left),evaluate[Double](transformation.right)) },
-            { case (transformation,(left,right)) => transformation.operation match{
-              case ScalarsOperation.Addition => left + right
-              case ScalarsOperation.Subtraction => left - right
-              case ScalarsOperation.Division => left / right
-              case ScalarsOperation.Multiplication => left * right
-              case ScalarsOperation.Exponentiation => math.pow(left,right)
-              case ScalarsOperation.Maximum => math.max(left,right)
-              case ScalarsOperation.Norm2 => math.sqrt(left*left + right*right)
-            }})
+      case transformation: Parameter => {
+        throw new ExecutionRuntimeError("Parameters cannot be executed")
+      }
+      
+      case transformation: function => {
+        throw new ExecutionRuntimeError("Functions cannot be executed")
+      }
     }
-    
 
   }
 }

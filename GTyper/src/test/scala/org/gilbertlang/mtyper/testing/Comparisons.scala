@@ -109,10 +109,12 @@ trait Comparisons extends Assertions {
         expParams zip actParams foreach { case (e, a) => checkExpression(e, a) }
         checkType(expType, actType)
       }
-      case (TypedAnonymousFunction(expParams, expBody, expType), 
-          TypedAnonymousFunction(actParams, actBody, actType)) =>{
+      case (TypedAnonymousFunction(expParams, expBody, expClosure, expType), 
+          TypedAnonymousFunction(actParams, actBody, actClosure, actType)) =>{
         expectResult(expParams.length)(actParams.length)
         expParams zip actParams foreach { case(e,a) => checkIdentifier(e,a)}
+        expectResult(expClosure.length)(actClosure.length)
+        expClosure zip actClosure foreach { case (e,a) => expectResult(e)(a)}
         checkExpression(expBody, actBody)
         checkType(expType, actType)
       }

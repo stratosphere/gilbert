@@ -38,6 +38,10 @@ object VectorFunctions {
   def max = new DoubleDoubleFunction {
     def apply(value1: Double, value2: Double) = math.max(value1, value2)
   }
+  
+  def min = new DoubleDoubleFunction {
+    def apply(a: Double, b: Double) = math.min(a,b)
+  }
 
   def identity = new DoubleFunction {
     def apply(value: Double) = value

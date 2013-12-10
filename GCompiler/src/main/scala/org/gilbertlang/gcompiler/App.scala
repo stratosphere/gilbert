@@ -11,7 +11,7 @@ import org.gilbertlang.shell.local
  */
 object App extends GParser {
   def main(args: Array[String]) {
-    val inputReader = StreamReader(new InputStreamReader(ClassLoader.getSystemResourceAsStream("input.m")))
+    val inputReader = StreamReader(new InputStreamReader(ClassLoader.getSystemResourceAsStream("pageRank.m")))
     val typer = new GTyper {}
     val compiler = new GCompiler {}
 
