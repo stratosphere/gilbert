@@ -5,7 +5,7 @@
   <version>0.0.1</version>
   <packaging>pom</packaging>
   <name>${project.artifactId}</name>
-  <description>Matlab compiler for parallel dataflow systems</description>
+  <description>Compiler for parallel dataflow systems</description>
   <developers>
     <developer>
       <id>sebastian</id>
@@ -36,16 +36,24 @@
     <maven.compiler.source>1.6</maven.compiler.source>
     <maven.compiler.target>1.6</maven.compiler.target>
     <encoding>UTF-8</encoding>
-    <lexer.version>0.0.1</lexer.version>
-    <parser.version>0.0.1</parser.version>
-    <typer.version>0.0.1</typer.version>
-    <compiler.version>0.0.1</compiler.version>
-    <runtime.version>0.0.1</runtime.version>
-    <library.version>0.0.1</library.version>
   </properties>
+  
+  <repositories>
+  	<repository>
+  		<id>snapshots-repo</id>
+    	<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    	<releases><enabled>false</enabled></releases>
+    	<snapshots><enabled>true</enabled></snapshots>
+  	</repository>
+  </repositories>
   
   <dependencyManagement>
     <dependencies>
+      <dependency>
+    	<groupId>eu.stratosphere</groupId>
+    	<artifactId>pact-common</artifactId>
+    	<version>0.4-SNAPSHOT</version>
+      </dependency>
       <dependency>
         <groupId>org.scala-lang</groupId>
         <artifactId>scala-library</artifactId>
@@ -66,32 +74,32 @@
       <dependency>
         <groupId>org.gilbert-lang</groupId>
         <artifactId>GLexer</artifactId>
-        <version>${lexer.version}</version>
+        <version>0.0.1</version>
       </dependency>
       <dependency>
         <groupId>org.gilbert-lang</groupId>
         <artifactId>GParser</artifactId>
-        <version>${parser.version}</version>
+        <version>0.0.1</version>
       </dependency>
       <dependency>
         <groupId>org.gilbert-lang</groupId>
         <artifactId>GTyper</artifactId>
-        <version>${typer.version}</version>
+        <version>0.0.1</version>
       </dependency>
       <dependency>
         <groupId>org.gilbert-lang</groupId>
         <artifactId>GCompiler</artifactId>
-        <version>${compiler.version}</version>
+        <version>0.0.1</version>
       </dependency>
       <dependency>
         <groupId>org.gilbert-lang</groupId>
         <artifactId>GRuntime</artifactId>
-        <version>${runtime.version}</version>
+        <version>0.0.1</version>
       </dependency>
       <dependency>
       	<groupId>org.gilbert-lang</groupId>
       	<artifactId>GLibrary</artifactId>
-      	<version>${library.version}</version>
+      	<version>0.0.1</version>
       </dependency>
       <dependency>
         <groupId>org.apache.mahout</groupId>
